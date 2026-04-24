@@ -75,6 +75,7 @@
   .kpi.k-br   { border-color: var(--br-border); background: var(--br-light); }
   .kpi.k-ok   { border-color: var(--ok-border); background: var(--ok-bg); }
   .kpi.k-info { border-color: var(--info-border); background: var(--info-bg); }
+  .kpi.k-warn { border-color: var(--warn-border); background: var(--warn-bg); }
   .kpi-label  { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .09em; margin-bottom: 8px; }
   .kpi-value  { font-size: 28px; font-weight: 700; font-family: 'Lora', serif; }
   .kpi-sub    { font-size: 12px; color: var(--muted); margin-top: 4px; }
@@ -82,6 +83,7 @@
   .kpi.k-br  .kpi-value { color: var(--br); }
   .kpi.k-ok  .kpi-value { color: var(--ok); }
   .kpi.k-info .kpi-value { color: var(--info); }
+  .kpi.k-warn .kpi-value { color: var(--warn); }
 
   .section-title { font-family: 'Lora', serif; font-size: 14px; font-weight: 700; color: var(--bx); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
   .section-title::after { content:''; flex:1; height:1px; background: var(--border); }
@@ -238,6 +240,7 @@
       <div class="kpi k-bx"><div class="kpi-label">Parcelas em Atraso</div><div class="kpi-value" id="kpi-atrasado">—</div><div class="kpi-sub" id="kpi-atrasado-sub">—</div></div>
       <div class="kpi k-br"><div class="kpi-label">NFs Parcial Atrasado</div><div class="kpi-value" id="kpi-parcial">—</div><div class="kpi-sub">Com pagamento incompleto</div></div>
       <div class="kpi k-info"><div class="kpi-label">NFs Pendentes</div><div class="kpi-value" id="kpi-pendente">—</div><div class="kpi-sub" id="kpi-pendente-sub">—</div></div>
+      <div class="kpi k-warn"><div class="kpi-label">Recebíveis a Vencer</div><div class="kpi-value" id="kpi-avencer">—</div><div class="kpi-sub" id="kpi-avencer-sub">Parcelas em dia, não pagas</div></div>
       <div class="kpi k-ok"><div class="kpi-label">Total Recebido</div><div class="kpi-value" id="kpi-recebido">—</div><div class="kpi-sub" id="kpi-recebido-sub">—</div></div>
     </div>
 
@@ -435,11 +438,22 @@ function renderDash(){
   const totalReceb= rows.reduce((s,r)=>s+totalRec(r),0);
   const pagas     = rows.filter(r=>r.status==="Pago Total");
 
+  // Recebíveis a vencer: parcelas não pagas e ainda não vencidas
+  let aVencerVal = 0, aVencerQtd = 0;
+  rows.forEach(r => {
+    if(r.status==="Cancelado"||r.status==="Pago Total") return;
+    (r.parcelas||[]).forEach(p => {
+      if(!p.pago && !isPLate(p)) { aVencerVal += Number(p.valor)-Number(p.valor_recebido||0); aVencerQtd++; }
+    });
+  });
+
   document.getElementById("kpi-atrasado").textContent    = lateParcelas.length;
   document.getElementById("kpi-atrasado-sub").textContent= fmtBRL(lateVal)+" em aberto";
   document.getElementById("kpi-parcial").textContent     = nfsParcial.length;
   document.getElementById("kpi-pendente").textContent    = pending.length;
   document.getElementById("kpi-pendente-sub").textContent= fmtBRL(totalPend);
+  document.getElementById("kpi-avencer").textContent     = fmtBRL(aVencerVal);
+  document.getElementById("kpi-avencer-sub").textContent = aVencerQtd+" parcela(s) dentro do prazo";
   document.getElementById("kpi-recebido").textContent    = fmtBRL(totalReceb);
   document.getElementById("kpi-recebido-sub").textContent= pagas.length+" NFs quitadas";
   document.getElementById("alertCount").textContent      = nfsLate.length;
