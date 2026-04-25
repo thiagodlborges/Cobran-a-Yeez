@@ -206,9 +206,52 @@
     .parc-input-row { grid-template-columns: 26px 1fr 1fr; }
     .hide-sm { display: none; }
   }
+
+  /* ── LOGIN SCREEN ── */
+  .login-screen { display:none; position:fixed; inset:0; background:linear-gradient(135deg, var(--bx-dark) 0%, var(--bx) 60%, var(--br) 100%); z-index:1000; align-items:center; justify-content:center; padding:20px; }
+  .login-screen.visible { display:flex; }
+  .login-card { background:#fff; border-radius:20px; padding:40px; width:100%; max-width:380px; box-shadow:0 24px 64px rgba(44,16,8,0.4); }
+  .login-logo { text-align:center; margin-bottom:28px; }
+  .login-logo .login-icon { width:56px; height:56px; background:linear-gradient(135deg,var(--bx-dark),var(--bx)); border-radius:16px; display:inline-flex; align-items:center; justify-content:center; font-size:26px; margin-bottom:12px; }
+  .login-logo h2 { font-family:'Lora',serif; font-size:20px; font-weight:700; color:var(--bx); }
+  .login-logo p  { font-size:12px; color:var(--muted); margin-top:4px; }
+  .login-field { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+  .login-field label { font-size:11px; font-weight:700; color:var(--br); text-transform:uppercase; letter-spacing:.07em; }
+  .login-field input { padding:11px 14px; border:1.5px solid var(--border); border-radius:10px; font-size:14px; font-family:'Inter',sans-serif; color:var(--text); outline:none; transition:border-color .18s; }
+  .login-field input:focus { border-color:var(--bx-mid); box-shadow:0 0 0 3px rgba(107,26,42,0.1); }
+  .login-btn { width:100%; padding:12px; background:linear-gradient(135deg,var(--bx-dark),var(--bx)); color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; font-family:'Inter',sans-serif; cursor:pointer; margin-top:6px; transition:opacity .18s; }
+  .login-btn:hover { opacity:.9; }
+  .login-btn:disabled { opacity:.6; cursor:not-allowed; }
+  .login-error { background:var(--bx-light); border:1px solid var(--bx-border); color:var(--bx); border-radius:9px; padding:10px 14px; font-size:13px; margin-bottom:14px; display:none; }
+  .login-error.show { display:block; }
+  .user-info { display:flex; align-items:center; gap:8px; }
+  .user-email { font-size:12px; color:rgba(255,255,255,0.7); }
+  .btn-logout { background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px; padding:6px 12px; }
+  .btn-logout:hover { background:rgba(255,255,255,0.22); }
 </style>
 </head>
 <body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen visible" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-icon">📋</div>
+      <h2>Controle de Cobranças</h2>
+      <p>Yeez · Acesso restrito</p>
+    </div>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-field">
+      <label>E-mail</label>
+      <input id="loginEmail" type="email" placeholder="seu@email.com" autocomplete="email"/>
+    </div>
+    <div class="login-field">
+      <label>Senha</label>
+      <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Entrar</button>
+  </div>
+</div>
 
 <header>
   <div class="logo">
@@ -219,8 +262,10 @@
     </div>
   </div>
   <div class="header-actions">
+    <div class="user-info"><span class="user-email" id="userEmail"></span></div>
     <button class="btn btn-white" onclick="loadData()">🔄 Atualizar</button>
     <button class="btn btn-solid" onclick="openModal('new')">+ Nova NF</button>
+    <button class="btn btn-logout btn" onclick="doLogout()">Sair</button>
   </div>
 </header>
 
@@ -372,7 +417,53 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 const IS_CFG = SUPABASE_URL !== "COLE_SUA_URL_AQUI";
 let sb = null;
-if (IS_CFG) { sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); document.getElementById("configBanner").style.display="none"; }
+if (IS_CFG) {
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  document.getElementById("configBanner").style.display="none";
+}
+
+// ── AUTH ──
+async function checkSession() {
+  if (!sb) { showApp(); return; }
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    showApp(session.user.email);
+  } else {
+    showLogin();
+  }
+}
+
+function showLogin() {
+  document.getElementById("loginScreen").classList.add("visible");
+}
+
+function showApp(email) {
+  document.getElementById("loginScreen").classList.remove("visible");
+  if (email) document.getElementById("userEmail").textContent = email;
+  loadData();
+}
+
+async function doLogin() {
+  const email = document.getElementById("loginEmail").value.trim();
+  const pass  = document.getElementById("loginPassword").value;
+  const errEl = document.getElementById("loginError");
+  const btn   = document.getElementById("loginBtn");
+  if (!email || !pass) { errEl.textContent="Preencha e-mail e senha."; errEl.classList.add("show"); return; }
+  btn.disabled = true; btn.textContent = "Entrando...";
+  errEl.classList.remove("show");
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  btn.disabled = false; btn.textContent = "Entrar";
+  if (error) { errEl.textContent = "E-mail ou senha incorretos."; errEl.classList.add("show"); return; }
+  showApp(data.user.email);
+}
+
+async function doLogout() {
+  if (sb) await sb.auth.signOut();
+  document.getElementById("userEmail").textContent = "";
+  document.getElementById("loginEmail").value = "";
+  document.getElementById("loginPassword").value = "";
+  showLogin();
+}
 
 const MOCK = [
   { id:1, codigo_cliente:"CLI-001", nome_cliente:"Indústria Alpha Ltda", numero_nota:"NF-2024-0891", valor_total:18500, status:"Atrasado", observacoes:"3ª cobrança enviada",
@@ -659,7 +750,7 @@ function switchTab(tab,el){
   el.classList.add("active");
 }
 
-loadData();
+checkSession();
 </script>
 </body>
 </html>
