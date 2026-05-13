@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Controle de Cobranças · Yeez</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
   :root {
@@ -228,6 +229,15 @@
   .user-email { font-size:12px; color:rgba(255,255,255,0.7); }
   .btn-logout { background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); font-size:12px; padding:6px 12px; }
   .btn-logout:hover { background:rgba(255,255,255,0.22); }
+
+  /* ── CHART ── */
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; margin-bottom: 22px; box-shadow: 0 1px 6px rgba(75,16,32,0.07); }
+  .chart-card .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+  .chart-card .chart-title  { font-family: 'Lora', serif; font-size: 14px; font-weight: 700; color: var(--bx); }
+  .chart-card .chart-legend { display: flex; gap: 14px; flex-wrap: wrap; }
+  .chart-card .chart-leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); font-weight: 600; }
+  .chart-card .leg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .chart-wrap { position: relative; height: 260px; }
 </style>
 </head>
 <body>
@@ -300,6 +310,19 @@
 
     <div class="section-title">Situação por Status</div>
     <div class="status-grid" id="statusGrid"></div>
+
+    <div class="section-title" style="margin-top:22px">📅 Recebíveis por Mês</div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title">Fluxo de Recebíveis — próximos 8 meses</span>
+        <div class="chart-legend">
+          <div class="chart-leg-item"><div class="leg-dot" style="background:#6b1a2a"></div>Em Atraso</div>
+          <div class="chart-leg-item"><div class="leg-dot" style="background:#d4aa90"></div>A Vencer</div>
+          <div class="chart-leg-item"><div class="leg-dot" style="background:#3d6b38"></div>Recebido</div>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="recebiveisChart"></canvas></div>
+    </div>
   </div>
 
   <!-- TABELA -->
@@ -519,6 +542,80 @@ async function delFromDB(id){
   return true;
 }
 
+
+// ── CHART ──
+let chartInstance = null;
+
+function renderChart() {
+  const now = new Date();
+  const months = [];
+  for (let i = 0; i < 8; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    months.push({ key: d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'), label: d.toLocaleString('pt-BR',{month:'short',year:'2-digit'}) });
+  }
+
+  const atrasado = Array(8).fill(0);
+  const avencer  = Array(8).fill(0);
+  const recebido = Array(8).fill(0);
+
+  rows.forEach(r => {
+    (r.parcelas||[]).forEach(p => {
+      const venc = (p.data_vencimento||'').slice(0,7); // YYYY-MM
+      const idx  = months.findIndex(m => m.key === venc);
+      if (idx === -1) return;
+      const val  = Number(p.valor) || 0;
+      const rec  = Number(p.valor_recebido) || 0;
+      if (p.pago) {
+        recebido[idx] += rec;
+      } else if (isPLate(p)) {
+        atrasado[idx] += val - rec;
+      } else {
+        avencer[idx]  += val - rec;
+      }
+    });
+  });
+
+  const labels = months.map(m => m.label);
+  const ctx    = document.getElementById('recebiveisChart');
+  if (!ctx) return;
+
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Em Atraso',  data: atrasado, backgroundColor: '#6b1a2a', borderRadius: 4, borderSkipped: false },
+        { label: 'A Vencer',   data: avencer,  backgroundColor: '#d4aa90', borderRadius: 4, borderSkipped: false },
+        { label: 'Recebido',   data: recebido, backgroundColor: '#3d6b38', borderRadius: 4, borderSkipped: false },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ' ' + ctx.dataset.label + ': ' + Number(ctx.parsed.y).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Inter', size: 11 }, color: '#8a6050' } },
+        y: {
+          grid: { color: 'rgba(0,0,0,0.06)' },
+          ticks: {
+            font: { family: 'Inter', size: 11 }, color: '#8a6050',
+            callback: v => 'R$ ' + (v>=1000 ? (v/1000).toFixed(0)+'k' : v)
+          }
+        }
+      }
+    }
+  });
+}
+
 function renderDash(){
   const lateParcelas=[]; let lateVal=0;
   rows.forEach(r=>(r.parcelas||[]).forEach(p=>{if(isPLate(p)){lateParcelas.push({...p,_r:r});lateVal+=Number(p.valor)-Number(p.valor_recebido||0);}}));
@@ -582,6 +679,7 @@ function renderDash(){
     const cnt=rows.filter(r=>r.status===s.k).length;
     return`<div class="status-card" style="background:${s.bg};border-color:${s.bc}"><div class="s-count" style="color:${s.cl}">${cnt}</div><div class="s-label" style="color:${s.cl}">${s.k}</div></div>`;
   }).join("");
+  renderChart();
 }
 
 function bCls(s){return{Pendente:"b-pendente","Pago Parcial":"b-parcial","Pago Total":"b-pago",Atrasado:"b-atrasado",Cancelado:"b-cancelado"}[s]||"b-pendente";}
