@@ -6,6 +6,7 @@
 <title>Controle de Cobranças · Yeez</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
   :root {
@@ -238,6 +239,46 @@
   .chart-card .chart-leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); font-weight: 600; }
   .chart-card .leg-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
   .chart-wrap { position: relative; height: 260px; }
+
+  /* ── EXPORT MODAL ── */
+  .exp-section { margin-bottom: 18px; }
+  .exp-section h4 { font-size: 11px; font-weight: 700; color: var(--br); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 10px; padding-bottom: 7px; border-bottom: 1px solid var(--border); }
+  .exp-checks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .exp-check  { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; cursor: pointer; transition: all .15s; user-select: none; }
+  .exp-check:hover  { border-color: var(--bx-mid); background: var(--bx-light); }
+  .exp-check input  { accent-color: var(--bx); width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+  .exp-check label  { font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text); }
+  .exp-check small  { font-size: 10px; color: var(--muted); display: block; }
+  .exp-period { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .exp-period .form-group label { font-size: 10px; }
+  .exp-preview { background: var(--surface2); border: 1px solid var(--border); border-radius: 9px; padding: 10px 14px; font-size: 12px; color: var(--muted); font-family: 'Inter', monospace; }
+  .exp-preview strong { color: var(--bx); font-weight: 700; }
+
+  /* ── DATE FILTER & SUMMARY ── */
+  .date-filter-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 16px; margin-bottom:14px; box-shadow:0 1px 4px rgba(75,16,32,0.06); }
+  .date-filter-bar label { font-size:11px; font-weight:700; color:var(--br); text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; }
+  .date-filter-bar input[type=date] { padding:7px 10px; border:1px solid var(--border); border-radius:8px; font-family:'Inter',sans-serif; font-size:13px; color:var(--text); background:#fff; outline:none; }
+  .date-filter-bar input[type=date]:focus { border-color:var(--bx-mid); }
+  .date-sep { font-size:12px; color:var(--muted); }
+  .btn-clear-date { padding:6px 12px; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--muted); font-size:12px; font-weight:600; font-family:'Inter',sans-serif; cursor:pointer; transition:all .15s; }
+  .btn-clear-date:hover { border-color:var(--bx-border); color:var(--bx); }
+  .date-result-info { font-size:12px; color:var(--muted); margin-left:auto; white-space:nowrap; }
+
+  .summary-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:14px; }
+  .summary-card { background:var(--surface); border:1px solid var(--border); border-radius:11px; padding:12px 16px; display:flex; flex-direction:column; gap:3px; box-shadow:0 1px 3px rgba(75,16,32,0.05); }
+  .summary-card .sc-label { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
+  .summary-card .sc-value { font-size:16px; font-weight:700; font-family:'Lora',serif; }
+  .summary-card .sc-count { font-size:11px; color:var(--muted); }
+  .summary-card.sc-total   { border-color:var(--bx-border); background:var(--bx-light); }
+  .summary-card.sc-total   .sc-value { color:var(--bx); }
+  .summary-card.sc-atrasado{ border-color:var(--bx-border); background:#fdf2f4; }
+  .summary-card.sc-atrasado .sc-value { color:var(--bx-dark); }
+  .summary-card.sc-pendente{ border-color:var(--warn-border); background:var(--warn-bg); }
+  .summary-card.sc-pendente .sc-value { color:var(--warn); }
+  .summary-card.sc-parcial { border-color:var(--info-border); background:var(--info-bg); }
+  .summary-card.sc-parcial  .sc-value { color:var(--info); }
+  .summary-card.sc-pago    { border-color:var(--ok-border); background:var(--ok-bg); }
+  .summary-card.sc-pago    .sc-value { color:var(--ok); }
 </style>
 </head>
 <body>
@@ -327,6 +368,15 @@
 
   <!-- TABELA -->
   <div class="panel" id="panel-tabela">
+    <div class="date-filter-bar">
+      <label>Vencimento</label>
+      <input type="date" id="filterDe"  onchange="renderTable()" placeholder="De"/>
+      <span class="date-sep">→</span>
+      <input type="date" id="filterAte" onchange="renderTable()" placeholder="Até"/>
+      <button class="btn-clear-date" onclick="clearDateFilter()">✕ Limpar</button>
+      <span class="date-result-info" id="dateResultInfo"></span>
+    </div>
+    <div class="summary-bar" id="summaryBar" style="display:none"></div>
     <div class="toolbar">
       <div class="search-wrap">
         <span class="search-icon">🔍</span>
@@ -337,6 +387,7 @@
         <option>Pago Total</option><option>Atrasado</option><option>Cancelado</option>
       </select>
       <span class="count-label" id="countLabel">0 registros</span>
+      <button class="btn btn-br" onclick="openExport()" style="margin-left:4px">📥 Exportar</button>
     </div>
     <div class="table-wrap">
       <table>
@@ -684,34 +735,109 @@ function renderDash(){
 
 function bCls(s){return{Pendente:"b-pendente","Pago Parcial":"b-parcial","Pago Total":"b-pago",Atrasado:"b-atrasado",Cancelado:"b-cancelado"}[s]||"b-pendente";}
 
+function clearDateFilter(){
+  document.getElementById("filterDe").value="";
+  document.getElementById("filterAte").value="";
+  renderTable();
+}
+
 function renderTable(){
-  const q=document.getElementById("searchInput").value.toLowerCase();
-  const fs=document.getElementById("filterStatus").value;
-  let data=rows.filter(r=>{
-    const m=r.codigo_cliente?.toLowerCase().includes(q)||r.nome_cliente?.toLowerCase().includes(q)||r.numero_nota?.toLowerCase().includes(q);
-    return m&&(fs==="Todos"||r.status===fs);
+  const q   = document.getElementById("searchInput").value.toLowerCase();
+  const fs  = document.getElementById("filterStatus").value;
+  const de  = document.getElementById("filterDe").value;
+  const ate = document.getElementById("filterAte").value;
+  const hasDateFilter = de || ate;
+
+  // Filter rows — when date filter active, show NFs that have at least one
+  // parcela whose vencimento falls in the range
+  let data = rows.filter(r => {
+    const mText = r.codigo_cliente?.toLowerCase().includes(q)||r.nome_cliente?.toLowerCase().includes(q)||r.numero_nota?.toLowerCase().includes(q);
+    if (!mText) return false;
+    if (fs !== "Todos" && r.status !== fs) return false;
+    if (hasDateFilter) {
+      return (r.parcelas||[]).some(p => {
+        const v = p.data_vencimento || "";
+        return (!de || v >= de) && (!ate || v <= ate);
+      });
+    }
+    return true;
   }).sort((a,b)=>{
     let av=a[sortCol]??"",bv=b[sortCol]??"";
     if(sortCol==="valor_total"){av=+av;bv=+bv;}
     return sortDir==="asc"?(av>bv?1:-1):(av<bv?1:-1);
   });
-  document.getElementById("countLabel").textContent=data.length+" registros";
-  const tb=document.getElementById("tableBody");
-  if(!data.length){tb.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:36px;color:var(--muted)">Nenhum registro.</td></tr>`;return;}
-  tb.innerHTML=data.map(r=>{
-    const late=hasLate(r);
-    const saldo=Number(r.valor_total)-totalRec(r);
+
+  document.getElementById("countLabel").textContent = data.length+" registros";
+
+  // ── SUMMARY BAR ──────────────────────────────────────────────────────────
+  const sb = document.getElementById("summaryBar");
+  const di = document.getElementById("dateResultInfo");
+
+  // Compute stats from parcelas in range (or all if no date filter)
+  const parcsInRange = [];
+  data.forEach(r => {
+    (r.parcelas||[]).forEach(p => {
+      const v = p.data_vencimento || "";
+      if (hasDateFilter && !( (!de||v>=de) && (!ate||v<=ate) )) return;
+      parcsInRange.push({r, p});
+    });
+  });
+
+  const totalVal  = parcsInRange.reduce((s,{p})=>s+Number(p.valor||0),0);
+  const statMap   = {};
+  parcsInRange.forEach(({r,p})=>{
+    const st = r.status;
+    if (!statMap[st]) statMap[st] = {val:0, cnt:0};
+    statMap[st].val += Number(p.valor||0);
+    statMap[st].cnt++;
+  });
+
+  if (hasDateFilter || fs !== "Todos") {
+    sb.style.display = "grid";
+    const stDefs = [
+      {k:"Total do Período", cls:"sc-total",    val:totalVal,                cnt:parcsInRange.length+" parcelas"},
+      {k:"Atrasado",         cls:"sc-atrasado", val:statMap["Atrasado"]?.val||0,   cnt:(statMap["Atrasado"]?.cnt||0)+" parc."},
+      {k:"Pendente",         cls:"sc-pendente", val:statMap["Pendente"]?.val||0,   cnt:(statMap["Pendente"]?.cnt||0)+" parc."},
+      {k:"Pago Parcial",     cls:"sc-parcial",  val:statMap["Pago Parcial"]?.val||0,cnt:(statMap["Pago Parcial"]?.cnt||0)+" parc."},
+      {k:"Pago Total",       cls:"sc-pago",     val:statMap["Pago Total"]?.val||0,  cnt:(statMap["Pago Total"]?.cnt||0)+" parc."},
+    ];
+    sb.innerHTML = stDefs.map(s=>`
+      <div class="summary-card ${s.cls}">
+        <span class="sc-label">${s.k}</span>
+        <span class="sc-value">${fmtBRL(s.val)}</span>
+        <span class="sc-count">${s.cnt}</span>
+      </div>`).join("");
+    const label = de && ate ? `${fmtDate(de)} → ${fmtDate(ate)}` : de ? `A partir de ${fmtDate(de)}` : ate ? `Até ${fmtDate(ate)}` : "";
+    di.textContent = label ? `Período: ${label}` : "";
+  } else {
+    sb.style.display = "none";
+    di.textContent = "";
+  }
+
+  // ── TABLE ROWS ────────────────────────────────────────────────────────────
+  const tb = document.getElementById("tableBody");
+  if(!data.length){tb.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:36px;color:var(--muted)">Nenhum registro encontrado.</td></tr>`;return;}
+
+  tb.innerHTML = data.map(r=>{
+    const late  = hasLate(r);
+    const saldo = Number(r.valor_total)-totalRec(r);
+
+    // When date filter active, highlight only parcelas in range
     const parcHtml=(r.parcelas||[]).map(p=>{
-      const pl=isPLate(p);
-      const bc=p.pago?"b-pago":(pl?"b-atrasado":"b-pendente");
-      const lb=p.pago?"Pago":(pl?`${daysL(p.data_vencimento)}d atraso`:"Pendente");
-      return`<div class="parc-line">
+      const v  = p.data_vencimento||"";
+      const inRange = !hasDateFilter || ((!de||v>=de)&&(!ate||v<=ate));
+      const pl = isPLate(p);
+      const bc = p.pago?"b-pago":(pl?"b-atrasado":"b-pendente");
+      const lb = p.pago?"Pago":(pl?`${daysL(p.data_vencimento)}d atraso`:"Pendente");
+      const highlight = hasDateFilter && inRange ? "background:rgba(107,26,42,0.06);border-radius:6px;padding:2px 4px;" : "";
+      return`<div class="parc-line" style="${highlight}${!inRange&&hasDateFilter?"opacity:0.4":""}">
         <span class="parc-num">${p.num}ª</span>
         <span class="parc-val">${fmtBRL(p.valor)}</span>
         <span class="${pl?"parc-date-late":"parc-date"}">${fmtDate(p.data_vencimento)}</span>
         <span class="p-badge ${bc}" style="border-color:currentColor">${p.forma_pagamento} · ${lb}</span>
       </div>`;
     }).join("");
+
     return`<tr class="${late?"row-late":""}">
       <td style="font-family:monospace;font-size:11px;color:var(--br);font-weight:700">${r.codigo_cliente}</td>
       <td><strong>${r.numero_nota}</strong>${late?'<span class="dot-late"></span>':""}<br><small style="color:var(--muted);font-size:11px">${r.nome_cliente||""}</small></td>
@@ -848,7 +974,220 @@ function switchTab(tab,el){
   el.classList.add("active");
 }
 
+// ── EXPORT ──────────────────────────────────────────────────────────────────
+function openExport() {
+  updateExpPreview();
+  document.getElementById('expOverlay').classList.add('open');
+}
+function closeExp()    { document.getElementById('expOverlay').classList.remove('open'); }
+function closeExpOut(e){ if(e.target===document.getElementById('expOverlay')) closeExp(); }
+
+function toggleTodosStatus(el) {
+  document.querySelectorAll('.ef-status').forEach(c => c.checked = el.checked);
+  updateExpPreview();
+}
+
+function getExpStatus() {
+  const map = { 'ef-pendente':'Pendente','ef-parcial':'Pago Parcial','ef-pago':'Pago Total','ef-atrasado':'Atrasado','ef-cancelado':'Cancelado' };
+  return Object.entries(map).filter(([id])=>document.getElementById(id)?.checked).map(([,v])=>v);
+}
+
+function buildExpRows() {
+  const de  = document.getElementById('exp-de')?.value  || '';
+  const ate = document.getElementById('exp-ate')?.value || '';
+  const statuses = getExpStatus();
+  const result = [];
+
+  rows.forEach(r => {
+    if (!statuses.includes(r.status)) return;
+    (r.parcelas||[]).forEach(p => {
+      const venc = p.data_vencimento || '';
+      if (de  && venc < de)  return;
+      if (ate && venc > ate) return;
+      result.push({ nf: r, parc: p });
+    });
+  });
+  return result;
+}
+
+function updateExpPreview() {
+  const data = buildExpRows();
+  const nfs  = new Set(data.map(d => d.nf.numero_nota)).size;
+  document.getElementById('expPreview').innerHTML =
+    `<strong>${data.length}</strong> parcelas de <strong>${nfs}</strong> notas fiscais serão exportadas.`;
+}
+
+// Attach preview update to filter changes
+['exp-de','exp-ate'].forEach(id => {
+  setTimeout(() => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', updateExpPreview);
+  }, 500);
+});
+
+function exportXLSX() {
+  const data = buildExpRows();
+  if (!data.length) { toast('Nenhum dado para exportar.','err'); return; }
+
+  const col = id => document.getElementById(id)?.checked;
+  const fmtD = d => { try{ const[y,m,dd]=d.split('-'); return `${dd}/${m}/${y}`; }catch{return d||'';} };
+  const fmtN = v => Number(v||0);
+
+  // Build header
+  const header = [];
+  if (col('ec-codigo'))   header.push('Código Cliente');
+  if (col('ec-nome'))     header.push('Nome Cliente');
+  if (col('ec-nota'))     header.push('Nota Fiscal');
+  if (col('ec-total'))    header.push('Valor Total NF (R$)');
+  if (col('ec-parcela'))  header.push('Parcela');
+  if (col('ec-valparc'))  header.push('Valor Parcela (R$)');
+  if (col('ec-forma'))    header.push('Forma de Pagamento');
+  if (col('ec-venc'))     header.push('Data de Vencimento');
+  if (col('ec-recebido')) header.push('Valor Recebido (R$)');
+  if (col('ec-situacao')) header.push('Situação Parcela');
+  if (col('ec-status'))   header.push('Status NF');
+  if (col('ec-obs'))      header.push('Observações');
+
+  // Build rows
+  const wsData = [header];
+  data.forEach(({ nf: r, parc: p }) => {
+    const row = [];
+    if (col('ec-codigo'))   row.push(r.codigo_cliente || '');
+    if (col('ec-nome'))     row.push(r.nome_cliente   || '');
+    if (col('ec-nota'))     row.push(r.numero_nota    || '');
+    if (col('ec-total'))    row.push(fmtN(r.valor_total));
+    if (col('ec-parcela'))  row.push(`${p.num}ª`);
+    if (col('ec-valparc'))  row.push(fmtN(p.valor));
+    if (col('ec-forma'))    row.push(p.forma_pagamento || '');
+    if (col('ec-venc'))     row.push(fmtD(p.data_vencimento));
+    if (col('ec-recebido')) row.push(fmtN(p.valor_recebido));
+    if (col('ec-situacao')) row.push(p.situacao || (p.pago ? 'Pago' : 'Pendente'));
+    if (col('ec-status'))   row.push(r.status || '');
+    if (col('ec-obs'))      row.push(r.observacoes || '');
+    wsData.push(row);
+  });
+
+  // Build workbook
+  const wb  = XLSX.utils.book_new();
+  const ws  = XLSX.utils.aoa_to_sheet(wsData);
+
+  // Column widths
+  const colWidths = header.map(h => ({ wch: Math.max(h.length + 2, 18) }));
+  ws['!cols'] = colWidths;
+
+  // Style header row (bold + background) via cell meta
+  header.forEach((_, ci) => {
+    const cellRef = XLSX.utils.encode_cell({ r: 0, c: ci });
+    if (!ws[cellRef]) return;
+    ws[cellRef].s = {
+      font:    { bold: true, color: { rgb: 'FFFFFF' } },
+      fill:    { fgColor: { rgb: '6B1A2A' } },
+      alignment: { horizontal: 'center' }
+    };
+  });
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Cobranças');
+
+  // Summary sheet
+  const totalNFs     = new Set(data.map(d=>d.nf.numero_nota)).size;
+  const totalVal     = data.reduce((s,d)=>s+Number(d.parc.valor||0),0);
+  const totalRecebido= data.reduce((s,d)=>s+Number(d.parc.valor_recebido||0),0);
+  const totalPendente= totalVal - totalRecebido;
+  const today        = new Date().toLocaleDateString('pt-BR');
+
+  const sumData = [
+    ['RELATÓRIO DE COBRANÇAS — YEEZ'],
+    ['Gerado em:', today],
+    [''],
+    ['Resumo Geral', ''],
+    ['Total de NFs exportadas', totalNFs],
+    ['Total de parcelas', data.length],
+    ['Valor total (R$)', totalVal],
+    ['Total recebido (R$)', totalRecebido],
+    ['Saldo pendente (R$)', totalPendente],
+    [''],
+    ['Quebra por Status', 'Parcelas', 'Valor (R$)'],
+    ...['Pendente','Pago Parcial','Pago Total','Atrasado','Cancelado'].map(st => {
+      const filtered = data.filter(d=>d.nf.status===st);
+      return [st, filtered.length, filtered.reduce((s,d)=>s+Number(d.parc.valor||0),0)];
+    })
+  ];
+  const wsSummary = XLSX.utils.aoa_to_sheet(sumData);
+  wsSummary['!cols'] = [{wch:28},{wch:20},{wch:20}];
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Resumo');
+
+  // Download
+  const filename = `cobrancas_yeez_${new Date().toISOString().slice(0,10)}.xlsx`;
+  XLSX.writeFile(wb, filename);
+  toast('Relatório exportado com sucesso!');
+  closeExp();
+}
+
 checkSession();
 </script>
+
+<!-- EXPORT MODAL -->
+<div class="overlay" id="expOverlay" onclick="closeExpOut(event)">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <h2>📥 Exportar Relatório</h2>
+      <button class="btn btn-br" onclick="closeExp()" style="padding:5px 12px">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="exp-section">
+        <h4>Colunas a incluir</h4>
+        <div class="exp-checks">
+          <div class="exp-check"><input type="checkbox" id="ec-codigo"   checked><label for="ec-codigo">Código do Cliente</label></div>
+          <div class="exp-check"><input type="checkbox" id="ec-nome"     checked><label for="ec-nome">Nome do Cliente</label></div>
+          <div class="exp-check"><input type="checkbox" id="ec-nota"     checked><label for="ec-nota">Nota Fiscal</label></div>
+          <div class="exp-check"><input type="checkbox" id="ec-total"    checked><label for="ec-total">Valor Total</label></div>
+          <div class="exp-check"><input type="checkbox" id="ec-parcela"  checked><label for="ec-parcela">Nº da Parcela</label></div>
+          <div class="exp-check"><input type="checkbox" id="ec-valparc"  checked><label for="ec-valparc">Valor da Parcela</label></div>
+          <div class="exp-check"><input type="checkbox" id="ec-forma"    checked><label for="ec-forma">Forma de Pagamento</label></div>
+          <div class="exp-check"><input type="checkbox" id="ec-venc"     checked><label for="ec-venc">Data de Vencimento</label></div>
+          <div class="exp-check"><input type="checkbox" id="ec-recebido" checked><label for="ec-recebido">Valor Recebido</label></div>
+          <div class="exp-check"><input type="checkbox" id="ec-situacao" checked><label for="ec-situacao">Situação da Parcela</label></div>
+          <div class="exp-check"><input type="checkbox" id="ec-status"   checked><label for="ec-status">Status da NF</label></div>
+          <div class="exp-check"><input type="checkbox" id="ec-obs"            ><label for="ec-obs">Observações</label></div>
+        </div>
+      </div>
+
+      <div class="exp-section">
+        <h4>Filtrar por período de vencimento</h4>
+        <div class="exp-period">
+          <div class="form-group">
+            <label>De</label>
+            <input type="date" id="exp-de"/>
+          </div>
+          <div class="form-group">
+            <label>Até</label>
+            <input type="date" id="exp-ate"/>
+          </div>
+        </div>
+        <p style="font-size:11px;color:var(--muted);margin-top:8px">Deixe em branco para exportar todos os períodos.</p>
+      </div>
+
+      <div class="exp-section">
+        <h4>Filtrar por status</h4>
+        <div class="exp-checks">
+          <div class="exp-check"><input type="checkbox" id="ef-todos" checked onchange="toggleTodosStatus(this)"><label for="ef-todos"><strong>Todos os status</strong></label></div>
+          <div class="exp-check"><input type="checkbox" id="ef-pendente"  checked class="ef-status"><label for="ef-pendente">Pendente</label></div>
+          <div class="exp-check"><input type="checkbox" id="ef-parcial"   checked class="ef-status"><label for="ef-parcial">Pago Parcial</label></div>
+          <div class="exp-check"><input type="checkbox" id="ef-pago"      checked class="ef-status"><label for="ef-pago">Pago Total</label></div>
+          <div class="exp-check"><input type="checkbox" id="ef-atrasado"  checked class="ef-status"><label for="ef-atrasado">Atrasado</label></div>
+          <div class="exp-check"><input type="checkbox" id="ef-cancelado"        class="ef-status"><label for="ef-cancelado">Cancelado</label></div>
+        </div>
+      </div>
+
+      <div class="exp-preview" id="expPreview">Calculando...</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-br" onclick="closeExp()">Cancelar</button>
+      <button class="btn btn-bx" onclick="exportXLSX()">⬇ Baixar XLSX</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
