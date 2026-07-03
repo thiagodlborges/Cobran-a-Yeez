@@ -313,6 +313,7 @@
     </div>
   </div>
   <div class="header-actions">
+    <a href="https://thiagodlborges.github.io/sistema-luna/" class="btn btn-white" style="text-decoration:none">← Sistema Luna</a>
     <div class="user-info"><span class="user-email" id="userEmail"></span></div>
     <button class="btn btn-white" onclick="loadData()">🔄 Atualizar</button>
     <button class="btn btn-solid" onclick="openModal('new')">+ Nova NF</button>
@@ -427,10 +428,6 @@
           <input id="f-nome" type="text" placeholder="Razão social ou nome"/>
         </div>
         <div class="form-group">
-          <label>Data da Venda <span class="required">*</span></label>
-          <input id="f-data-venda" type="date"/>
-        </div>
-        <div class="form-group">
           <label>Valor Total da NF (R$) <span class="required">*</span></label>
           <input id="f-total" type="number" min="0" step="0.01" placeholder="0,00"/>
         </div>
@@ -488,9 +485,9 @@
 
 <script>
 // ═══════════════════════════════════════════════════
-// ⚙️ SUPABASE — Cobrança Yeez
-const SUPABASE_URL = "https://gdywqnmuyxmsbpwrhfub.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkeXdxbm11eXhtc2Jwd3JoZnViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMzg2MzEsImV4cCI6MjA5MjYxNDYzMX0.1jOkHqTGnFK6ygejZ16kzPK8_MROJqNYgaYgpdD0DBk";
+// ⚙️ SUPABASE — Cobrança Yeez (agora no projeto principal, unificado)
+const SUPABASE_URL = "https://pbuhwpcpdcnaheaywmdv.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBidWh3cGNwZGNuYWhlYXl3bWR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjU5MzksImV4cCI6MjA5MTg0MTkzOX0.Mg4PVg96ZiV3C2Rn0GLQU9c7ui_41OlU6Ldqn5jcvyY";
 // ═══════════════════════════════════════════════════
 
 const IS_CFG = SUPABASE_URL !== "COLE_SUA_URL_AQUI";
@@ -505,10 +502,23 @@ async function checkSession() {
   if (!sb) { showApp(); return; }
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
-    showApp(session.user.email);
+    const ok = await verificarAcessoCobranca();
+    if (ok) showApp(session.user.email);
   } else {
     showLogin();
   }
+}
+
+async function verificarAcessoCobranca() {
+  const { data, error } = await sb.rpc('tem_acesso', { p_slug: 'cobranca' });
+  if (error || !data) {
+    const errEl = document.getElementById("loginError");
+    if (errEl) { errEl.textContent = "Este acesso é exclusivo para quem tem permissão de Cobrança."; errEl.classList.add("show"); }
+    await sb.auth.signOut();
+    showLogin();
+    return false;
+  }
+  return true;
 }
 
 function showLogin() {
@@ -532,7 +542,8 @@ async function doLogin() {
   const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
   btn.disabled = false; btn.textContent = "Entrar";
   if (error) { errEl.textContent = "E-mail ou senha incorretos."; errEl.classList.add("show"); return; }
-  showApp(data.user.email);
+  const ok = await verificarAcessoCobranca();
+  if (ok) showApp(data.user.email);
 }
 
 async function doLogout() {
@@ -844,7 +855,7 @@ function renderTable(){
 
     return`<tr class="${late?"row-late":""}">
       <td style="font-family:monospace;font-size:11px;color:var(--br);font-weight:700">${r.codigo_cliente}</td>
-      <td><strong>${r.numero_nota}</strong>${late?'<span class="dot-late"></span>':""}<br><small style="color:var(--muted);font-size:11px">${r.nome_cliente||""}</small>${r.data_venda?`<br><small style="color:var(--info);font-size:10px;font-weight:600">Venda: ${fmtDate(r.data_venda)}</small>`:''}</td>
+      <td><strong>${r.numero_nota}</strong>${late?'<span class="dot-late"></span>':""}<br><small style="color:var(--muted);font-size:11px">${r.nome_cliente||""}</small></td>
       <td><span style="font-weight:700">${fmtBRL(r.valor_total)}</span>${saldo>0&&totalRec(r)>0?`<br><small style="color:var(--bx);font-size:11px">falta ${fmtBRL(saldo)}</small>`:""}</td>
       <td><div class="parc-row">${parcHtml}</div></td>
       <td><span class="badge ${bCls(r.status)}">${r.status}</span></td>
@@ -907,7 +918,7 @@ function collectParcelas(){
 
 function openModal(mode,id=null){
   editId=null;
-  ["f-codigo","f-nota","f-nome","f-data-venda","f-obs"].forEach(x=>document.getElementById(x).value="");
+  ["f-codigo","f-nota","f-nome","f-obs"].forEach(x=>document.getElementById(x).value="");
   document.getElementById("f-total").value="";
   document.getElementById("f-status").value="Pendente";
   document.getElementById("numParc").value="1";
@@ -918,7 +929,6 @@ function openModal(mode,id=null){
     document.getElementById("f-codigo").value=r.codigo_cliente||"";
     document.getElementById("f-nota").value=r.numero_nota||"";
     document.getElementById("f-nome").value=r.nome_cliente||"";
-    document.getElementById("f-data-venda").value=r.data_venda||"";
     document.getElementById("f-total").value=r.valor_total||"";
     document.getElementById("f-status").value=r.status||"Pendente";
     document.getElementById("f-obs").value=r.observacoes||"";
@@ -937,12 +947,10 @@ async function saveRecord(){
   const codigo=document.getElementById("f-codigo").value.trim();
   const nota=document.getElementById("f-nota").value.trim();
   const total=parseFloat(document.getElementById("f-total").value);
-  const dataVenda=document.getElementById("f-data-venda").value;
-  if(!codigo||!nota||!total){toast("Preencha os campos obrigatórios (*)", "err");return;}
-  if(!dataVenda){toast("Preencha a Data da Venda (*)", "err");return;}
+  if(!codigo||!nota||!total){toast("Preencha os campos obrigatórios (*)","err");return;}
   const parcelas=collectParcelas();
   if(parcelas.some(p=>!p.data_vencimento)){toast("Preencha as datas de vencimento","err");return;}
-  const payload={codigo_cliente:codigo,numero_nota:nota,nome_cliente:document.getElementById("f-nome").value.trim(),data_venda:dataVenda,valor_total:total,status:document.getElementById("f-status").value,observacoes:document.getElementById("f-obs").value.trim(),parcelas};
+  const payload={codigo_cliente:codigo,numero_nota:nota,nome_cliente:document.getElementById("f-nome").value.trim(),valor_total:total,status:document.getElementById("f-status").value,observacoes:document.getElementById("f-obs").value.trim(),parcelas};
   const btn=document.getElementById("saveBtn");btn.disabled=true;btn.textContent="Salvando...";
   if(editId){
     payload.id=editId;
@@ -1045,7 +1053,6 @@ function exportXLSX() {
   if (col('ec-codigo'))   header.push('Código Cliente');
   if (col('ec-nome'))     header.push('Nome Cliente');
   if (col('ec-nota'))     header.push('Nota Fiscal');
-  if (col('ec-datavenda'))header.push('Data da Venda');
   if (col('ec-total'))    header.push('Valor Total NF (R$)');
   if (col('ec-parcela'))  header.push('Parcela');
   if (col('ec-valparc'))  header.push('Valor Parcela (R$)');
@@ -1060,10 +1067,9 @@ function exportXLSX() {
   const wsData = [header];
   data.forEach(({ nf: r, parc: p }) => {
     const row = [];
-    if (col('ec-codigo'))    row.push(r.codigo_cliente || '');
-    if (col('ec-nome'))      row.push(r.nome_cliente   || '');
-    if (col('ec-nota'))      row.push(r.numero_nota    || '');
-    if (col('ec-datavenda')) row.push(fmtD(r.data_venda||''));
+    if (col('ec-codigo'))   row.push(r.codigo_cliente || '');
+    if (col('ec-nome'))     row.push(r.nome_cliente   || '');
+    if (col('ec-nota'))     row.push(r.numero_nota    || '');
     if (col('ec-total'))    row.push(fmtN(r.valor_total));
     if (col('ec-parcela'))  row.push(`${p.num}ª`);
     if (col('ec-valparc'))  row.push(fmtN(p.valor));
@@ -1150,7 +1156,6 @@ checkSession();
           <div class="exp-check"><input type="checkbox" id="ec-codigo"   checked><label for="ec-codigo">Código do Cliente</label></div>
           <div class="exp-check"><input type="checkbox" id="ec-nome"     checked><label for="ec-nome">Nome do Cliente</label></div>
           <div class="exp-check"><input type="checkbox" id="ec-nota"     checked><label for="ec-nota">Nota Fiscal</label></div>
-          <div class="exp-check"><input type="checkbox" id="ec-datavenda" checked><label for="ec-datavenda">Data da Venda</label></div>
           <div class="exp-check"><input type="checkbox" id="ec-total"    checked><label for="ec-total">Valor Total</label></div>
           <div class="exp-check"><input type="checkbox" id="ec-parcela"  checked><label for="ec-parcela">Nº da Parcela</label></div>
           <div class="exp-check"><input type="checkbox" id="ec-valparc"  checked><label for="ec-valparc">Valor da Parcela</label></div>
