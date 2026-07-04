@@ -284,7 +284,7 @@
 <body>
 
 <!-- LOGIN SCREEN -->
-<div class="login-screen visible" id="loginScreen">
+<div class="login-screen" id="loginScreen">
   <div class="login-card">
     <div class="login-logo">
       <div class="login-icon">📋</div>
@@ -498,6 +498,8 @@ if (IS_CFG) {
 }
 
 // ── AUTH ──
+const PORTAL_URL = 'https://thiagodlborges.github.io/Sistema-Luna/';
+
 async function checkSession() {
   if (!sb) { showApp(); return; }
   const { data: { session } } = await sb.auth.getSession();
@@ -505,17 +507,15 @@ async function checkSession() {
     const ok = await verificarAcessoCobranca();
     if (ok) showApp(session.user.email);
   } else {
-    showLogin();
+    window.location.href = PORTAL_URL;
   }
 }
 
 async function verificarAcessoCobranca() {
   const { data, error } = await sb.rpc('tem_acesso', { p_slug: 'cobranca' });
   if (error || !data) {
-    const errEl = document.getElementById("loginError");
-    if (errEl) { errEl.textContent = "Este acesso é exclusivo para quem tem permissão de Cobrança."; errEl.classList.add("show"); }
     await sb.auth.signOut();
-    showLogin();
+    window.location.href = PORTAL_URL;
     return false;
   }
   return true;
