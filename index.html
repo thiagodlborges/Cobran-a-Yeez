@@ -421,8 +421,8 @@
           <input id="f-codigo" type="text" placeholder="CLI-001"/>
         </div>
         <div class="form-group">
-          <label>Nº da Nota Fiscal <span class="required">*</span></label>
-          <input id="f-nota" type="text" placeholder="NF-2024-0001"/>
+          <label>Nº da Nota Fiscal <span style="color:var(--muted);font-weight:400">(opcional — pode preencher depois)</span></label>
+          <input id="f-nota" type="text" placeholder="Deixe em branco se ainda não tiver"/>
         </div>
         <div class="form-group full">
           <label>Nome do Cliente</label>
@@ -725,7 +725,7 @@ function renderDash(){
     }).join("");
     return `<div class="alert-item">
       <div class="alert-item-main">
-        <div class="alert-item-nf">${r.numero_nota} <span class="badge b-atrasado">Atraso</span></div>
+        <div class="alert-item-nf">${nfLabel(r)} <span class="badge b-atrasado">Atraso</span></div>
         <div class="alert-item-cli">${r.nome_cliente||""} · ${r.codigo_cliente}</div>
       </div>
       <div class="alert-item-stat"><label>Parcelas vencidas</label><strong class="val-bx">${lateCount} de ${(r.parcelas||[]).length}</strong></div>
@@ -750,6 +750,7 @@ function renderDash(){
 }
 
 function bCls(s){return{Pendente:"b-pendente","Pago Parcial":"b-parcial","Pago Total":"b-pago",Atrasado:"b-atrasado",Cancelado:"b-cancelado"}[s]||"b-pendente";}
+function nfLabel(r){return r.numero_nota ? r.numero_nota : '<span style="color:var(--bx);font-style:italic;font-weight:600">Aguardando NF</span>';}
 
 function clearDateFilter(){
   document.getElementById("filterDe").value="";
@@ -856,7 +857,7 @@ function renderTable(){
 
     return`<tr class="${late?"row-late":""}">
       <td style="font-family:monospace;font-size:11px;color:var(--br);font-weight:700">${r.codigo_cliente}</td>
-      <td><strong>${r.numero_nota}</strong>${late?'<span class="dot-late"></span>':""}<br><small style="color:var(--muted);font-size:11px">${r.nome_cliente||""}</small></td>
+      <td><strong>${nfLabel(r)}</strong>${late?'<span class="dot-late"></span>':""}<br><small style="color:var(--muted);font-size:11px">${r.nome_cliente||""}</small></td>
       <td><span style="font-weight:700">${fmtBRL(r.valor_total)}</span>${saldo>0&&totalRec(r)>0?`<br><small style="color:var(--bx);font-size:11px">falta ${fmtBRL(saldo)}</small>`:""}</td>
       <td><div class="parc-row">${parcHtml}</div></td>
       <td><span class="badge ${bCls(r.status)}">${r.status}</span></td>
@@ -948,10 +949,10 @@ async function saveRecord(){
   const codigo=document.getElementById("f-codigo").value.trim();
   const nota=document.getElementById("f-nota").value.trim();
   const total=parseFloat(document.getElementById("f-total").value);
-  if(!codigo||!nota||!total){toast("Preencha os campos obrigatórios (*)","err");return;}
+  if(!codigo||!total){toast("Preencha os campos obrigatórios (*)","err");return;}
   const parcelas=collectParcelas();
   if(parcelas.some(p=>!p.data_vencimento)){toast("Preencha as datas de vencimento","err");return;}
-  const payload={codigo_cliente:codigo,numero_nota:nota,nome_cliente:document.getElementById("f-nome").value.trim(),valor_total:total,status:document.getElementById("f-status").value,observacoes:document.getElementById("f-obs").value.trim(),parcelas};
+  const payload={codigo_cliente:codigo,numero_nota:nota||null,nome_cliente:document.getElementById("f-nome").value.trim(),valor_total:total,status:document.getElementById("f-status").value,observacoes:document.getElementById("f-obs").value.trim(),parcelas};
   const btn=document.getElementById("saveBtn");btn.disabled=true;btn.textContent="Salvando...";
   if(editId){
     payload.id=editId;
