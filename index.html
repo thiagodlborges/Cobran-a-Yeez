@@ -10,30 +10,30 @@
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
   :root {
-    --bg:         #f5ede8;
-    --surface:    #ffffff;
-    --surface2:   #ede0d8;
-    --border:     #d9c4b8;
-    --border2:    #c9a898;
-    --text:       #2c1008;
-    --muted:      #8a6050;
-    --bx:         #6b1a2a;
-    --bx-dark:    #4e1020;
-    --bx-light:   #f4e4e8;
-    --bx-mid:     #9b3348;
-    --bx-border:  #d9a0ad;
-    --br:         #7a4028;
-    --br-light:   #f7ede6;
-    --br-border:  #d4aa90;
-    --ok:         #3d6b38;
-    --ok-bg:      #eaf2e8;
-    --ok-border:  #aacda4;
-    --warn:       #7a5a10;
-    --warn-bg:    #faf3e0;
-    --warn-border:#d9c470;
-    --info:       #2a4a6a;
-    --info-bg:    #e6eef6;
-    --info-border:#9ab8d4;
+    --bg:         #F5EBD8;
+    --surface:    #FFFCF8;
+    --surface2:   #F0E8DE;
+    --border:     #E8C9A8;
+    --border2:    #C4956A;
+    --text:       #2A1505;
+    --muted:      #5C3317;
+    --bx:         #6B1F2E;
+    --bx-dark:    #4E1020;
+    --bx-light:   #F5D8DC;
+    --bx-mid:     #8B2A3E;
+    --bx-border:  #C4607A;
+    --br:         #6B3A1F;
+    --br-light:   #F0E8DE;
+    --br-border:  #C4956A;
+    --ok:         #4A7A45;
+    --ok-bg:      #D4E8D4;
+    --ok-border:  #9DC094;
+    --warn:       #8A6010;
+    --warn-bg:    #F0E0B0;
+    --warn-border:#D4B860;
+    --info:       #6B3A1F;
+    --info-bg:    #E8C9A8;
+    --info-border:#C4956A;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { overflow-x: hidden; max-width: 100vw; }
@@ -59,9 +59,9 @@
   .btn-bx     { background: var(--bx); color: #fff; }
   .btn-bx:hover { background: var(--bx-dark); }
   .btn-br     { background: var(--br-light); color: var(--br); border: 1px solid var(--br-border); }
-  .btn-br:hover { background: #f0e0d4; }
+  .btn-br:hover { background: #F0E8DE; }
   .btn-danger { background: var(--bx-light); color: var(--bx); border: 1px solid var(--bx-border); }
-  .btn-danger:hover { background: #eecdd4; }
+  .btn-danger:hover { background: #F5D8DC; }
 
   .tabs { background: var(--surface); border-bottom: 2px solid var(--border); padding: 0 24px; display: flex; gap: 2px; }
   .tab { padding: 13px 20px; font-size: 13px; font-weight: 600; color: var(--muted); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.18s; font-family: 'Inter', sans-serif; }
@@ -92,7 +92,7 @@
   .section-title::after { content:''; flex:1; height:1px; background: var(--border); }
 
   .alert-box { background: var(--bx-light); border: 1px solid var(--bx-border); border-radius: 14px; margin-bottom: 22px; overflow: hidden; box-shadow: 0 1px 6px rgba(75,16,32,0.09); }
-  .alert-box-header { padding: 14px 20px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--bx-border); background: #eecdd4; }
+  .alert-box-header { padding: 14px 20px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--bx-border); background: #F5D8DC; }
   .alert-box-header span { font-weight: 700; color: var(--bx-dark); font-size: 14px; font-family: 'Lora', serif; }
   .alert-count { margin-left: auto; background: var(--bx); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 99px; }
   .alert-item { padding: 14px 20px; border-bottom: 1px solid var(--bx-border); display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; background: #fff; }
@@ -113,7 +113,7 @@
   .chip-late { background: var(--bx-light); border-color: var(--bx-border); color: var(--bx-dark); }
   .chip-ok   { background: var(--ok-bg);    border-color: var(--ok-border);  color: var(--ok); }
   .chip-pend { background: var(--warn-bg);  border-color: var(--warn-border);color: var(--warn); }
-  .chip-perda{ background: #2c1008; border-color: #2c1008; color: #f0d8cc; }
+  .chip-perda{ background: #2A1505; border-color: #2A1505; color: #F0E0CC; }
 
   .empty-state { padding: 40px; text-align: center; color: var(--muted); font-size: 14px; }
 
@@ -137,8 +137,8 @@
   th { padding: 11px 14px; text-align: left; font-size: 10px; font-weight: 700; color: var(--br); text-transform: uppercase; letter-spacing: .07em; white-space: nowrap; cursor: pointer; user-select: none; }
   th:hover { color: var(--bx); }
   td { padding: 11px 14px; border-top: 1px solid var(--border); vertical-align: top; }
-  tr:hover td { background: #fdf6f2; }
-  tr.row-late td { background: #fdf2f4; }
+  tr:hover td { background: #FAF1E4; }
+  tr.row-late td { background: #F9E4E8; }
 
   .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 99px; font-size: 11px; font-weight: 700; border: 1px solid; white-space: nowrap; }
   .b-atrasado { background: var(--bx-light); color: var(--bx);  border-color: var(--bx-border); }
@@ -146,7 +146,7 @@
   .b-parcial  { background: var(--info-bg);  color: var(--info);border-color: var(--info-border); }
   .b-pago     { background: var(--ok-bg);    color: var(--ok);  border-color: var(--ok-border); }
   .b-cancelado{ background: var(--surface2); color: var(--muted);border-color: var(--border); }
-  .b-perda    { background: #2c1008; color: #f0d8cc; border-color: #2c1008; }
+  .b-perda    { background: #2A1505; color: #F0E0CC; border-color: #2A1505; }
   .origem-badge { display:inline-flex; align-items:center; padding:2px 8px; border-radius:99px; font-size:10px; font-weight:700; border:1px solid; white-space:nowrap; }
   .o-manual  { background: var(--surface2); color: var(--muted); border-color: var(--border); }
   .o-freezer { background: var(--info-bg);  color: var(--info);  border-color: var(--info-border); }
@@ -295,7 +295,7 @@
   .summary-card .sc-count { font-size:11px; color:var(--muted); }
   .summary-card.sc-total   { border-color:var(--bx-border); background:var(--bx-light); }
   .summary-card.sc-total   .sc-value { color:var(--bx); }
-  .summary-card.sc-atrasado{ border-color:var(--bx-border); background:#fdf2f4; }
+  .summary-card.sc-atrasado{ border-color:var(--bx-border); background:#F9E4E8; }
   .summary-card.sc-atrasado .sc-value { color:var(--bx-dark); }
   .summary-card.sc-pendente{ border-color:var(--warn-border); background:var(--warn-bg); }
   .summary-card.sc-pendente .sc-value { color:var(--warn); }
@@ -384,7 +384,7 @@
       <div class="kpi k-bx"><div class="kpi-label">Parcelas em Atraso (hoje)</div><div class="kpi-value" id="kpi-atrasado">—</div><div class="kpi-sub" id="kpi-atrasado-sub">—</div></div>
       <div class="kpi k-warn"><div class="kpi-label">Recebíveis a Vencer</div><div class="kpi-value" id="kpi-avencer">—</div><div class="kpi-sub" id="kpi-avencer-sub">Parcelas em dia, não pagas</div></div>
       <div class="kpi k-ok"><div class="kpi-label">Total Recebido (histórico)</div><div class="kpi-value" id="kpi-recebido">—</div><div class="kpi-sub" id="kpi-recebido-sub">—</div></div>
-      <div class="kpi" style="border-color:#2c1008;background:#f7ede6"><div class="kpi-label" style="color:#2c1008">Perdas no Período</div><div class="kpi-value" style="color:#2c1008" id="kpi-perda">—</div><div class="kpi-sub" id="kpi-perda-sub">—</div></div>
+      <div class="kpi" style="border-color:#2A1505;background:#F0E8DE"><div class="kpi-label" style="color:#2A1505">Perdas no Período</div><div class="kpi-value" style="color:#2A1505" id="kpi-perda">—</div><div class="kpi-sub" id="kpi-perda-sub">—</div></div>
     </div>
 
     <div class="section-title">🚨 NFs com Parcelas em Atraso</div>
@@ -404,9 +404,9 @@
       <div class="chart-header">
         <span class="chart-title">Faturado (competência) x Recebido (caixa), por mês</span>
         <div class="chart-legend">
-          <div class="chart-leg-item"><div class="leg-dot" style="background:#2a4a6a"></div>Faturado (competência)</div>
-          <div class="chart-leg-item"><div class="leg-dot" style="background:#3d6b38"></div>Recebido (caixa)</div>
-          <div class="chart-leg-item"><div class="leg-dot" style="background:#2c1008"></div>Perdas</div>
+          <div class="chart-leg-item"><div class="leg-dot" style="background:#6B3A1F"></div>Faturado (competência)</div>
+          <div class="chart-leg-item"><div class="leg-dot" style="background:#4A7A45"></div>Recebido (caixa)</div>
+          <div class="chart-leg-item"><div class="leg-dot" style="background:#2A1505"></div>Perdas</div>
         </div>
       </div>
       <div class="chart-wrap"><canvas id="competenciaCaixaChart"></canvas></div>
@@ -417,9 +417,9 @@
       <div class="chart-header">
         <span class="chart-title">Fluxo de Recebíveis — próximos 8 meses</span>
         <div class="chart-legend">
-          <div class="chart-leg-item"><div class="leg-dot" style="background:#6b1a2a"></div>Em Atraso</div>
-          <div class="chart-leg-item"><div class="leg-dot" style="background:#d4aa90"></div>A Vencer</div>
-          <div class="chart-leg-item"><div class="leg-dot" style="background:#3d6b38"></div>Recebido</div>
+          <div class="chart-leg-item"><div class="leg-dot" style="background:#6B1F2E"></div>Em Atraso</div>
+          <div class="chart-leg-item"><div class="leg-dot" style="background:#C4956A"></div>A Vencer</div>
+          <div class="chart-leg-item"><div class="leg-dot" style="background:#4A7A45"></div>Recebido</div>
         </div>
       </div>
       <div class="chart-wrap"><canvas id="recebiveisChart"></canvas></div>
@@ -727,9 +727,9 @@ function renderChart() {
     data: {
       labels,
       datasets: [
-        { label: 'Em Atraso',  data: atrasado, backgroundColor: '#6b1a2a', borderRadius: 4, borderSkipped: false },
-        { label: 'A Vencer',   data: avencer,  backgroundColor: '#d4aa90', borderRadius: 4, borderSkipped: false },
-        { label: 'Recebido',   data: recebido, backgroundColor: '#3d6b38', borderRadius: 4, borderSkipped: false },
+        { label: 'Em Atraso',  data: atrasado, backgroundColor: '#6B1F2E', borderRadius: 4, borderSkipped: false },
+        { label: 'A Vencer',   data: avencer,  backgroundColor: '#C4956A', borderRadius: 4, borderSkipped: false },
+        { label: 'Recebido',   data: recebido, backgroundColor: '#4A7A45', borderRadius: 4, borderSkipped: false },
       ]
     },
     options: {
@@ -744,11 +744,11 @@ function renderChart() {
         }
       },
       scales: {
-        x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Inter', size: 11 }, color: '#8a6050' } },
+        x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Inter', size: 11 }, color: '#5C3317' } },
         y: {
           grid: { color: 'rgba(0,0,0,0.06)' },
           ticks: {
-            font: { family: 'Inter', size: 11 }, color: '#8a6050',
+            font: { family: 'Inter', size: 11 }, color: '#5C3317',
             callback: v => 'R$ ' + (v>=1000 ? (v/1000).toFixed(0)+'k' : v)
           }
         }
@@ -833,9 +833,9 @@ function renderCompCaixaChart() {
     data: {
       labels,
       datasets: [
-        { label: 'Faturado (competência)', data: competencia, backgroundColor: '#2a4a6a', borderRadius: 4, borderSkipped: false },
-        { label: 'Recebido (caixa)',       data: caixa,       backgroundColor: '#3d6b38', borderRadius: 4, borderSkipped: false },
-        { label: 'Perdas',                 data: perdas,      backgroundColor: '#2c1008', borderRadius: 4, borderSkipped: false },
+        { label: 'Faturado (competência)', data: competencia, backgroundColor: '#6B3A1F', borderRadius: 4, borderSkipped: false },
+        { label: 'Recebido (caixa)',       data: caixa,       backgroundColor: '#4A7A45', borderRadius: 4, borderSkipped: false },
+        { label: 'Perdas',                 data: perdas,      backgroundColor: '#2A1505', borderRadius: 4, borderSkipped: false },
       ]
     },
     options: {
@@ -845,8 +845,8 @@ function renderCompCaixaChart() {
         tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + Number(ctx.parsed.y).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) } }
       },
       scales: {
-        x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Inter', size: 11 }, color: '#8a6050' } },
-        y: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { font: { family: 'Inter', size: 11 }, color: '#8a6050', callback: v => 'R$ ' + (v>=1000 ? (v/1000).toFixed(0)+'k' : v) } }
+        x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Inter', size: 11 }, color: '#5C3317' } },
+        y: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { font: { family: 'Inter', size: 11 }, color: '#5C3317', callback: v => 'R$ ' + (v>=1000 ? (v/1000).toFixed(0)+'k' : v) } }
       }
     }
   });
