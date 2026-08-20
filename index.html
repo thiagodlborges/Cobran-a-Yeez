@@ -113,6 +113,7 @@
   .chip-late { background: var(--bx-light); border-color: var(--bx-border); color: var(--bx-dark); }
   .chip-ok   { background: var(--ok-bg);    border-color: var(--ok-border);  color: var(--ok); }
   .chip-pend { background: var(--warn-bg);  border-color: var(--warn-border);color: var(--warn); }
+  .chip-perda{ background: #2c1008; border-color: #2c1008; color: #f0d8cc; }
 
   .empty-state { padding: 40px; text-align: center; color: var(--muted); font-size: 14px; }
 
@@ -145,8 +146,30 @@
   .b-parcial  { background: var(--info-bg);  color: var(--info);border-color: var(--info-border); }
   .b-pago     { background: var(--ok-bg);    color: var(--ok);  border-color: var(--ok-border); }
   .b-cancelado{ background: var(--surface2); color: var(--muted);border-color: var(--border); }
+  .b-perda    { background: #2c1008; color: #f0d8cc; border-color: #2c1008; }
+  .origem-badge { display:inline-flex; align-items:center; padding:2px 8px; border-radius:99px; font-size:10px; font-weight:700; border:1px solid; white-space:nowrap; }
+  .o-manual  { background: var(--surface2); color: var(--muted); border-color: var(--border); }
+  .o-freezer { background: var(--info-bg);  color: var(--info);  border-color: var(--info-border); }
+  .o-lojafab { background: var(--warn-bg);  color: var(--warn);  border-color: var(--warn-border); }
   .dot-late   { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--bx); margin-left: 5px; animation: pulse 1.4s infinite; }
   @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.25} }
+
+  .month-group { margin-bottom: 4px; }
+  .month-group-header { display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--surface2); border:1px solid var(--border); border-radius:12px; cursor:pointer; user-select:none; margin-bottom:2px; }
+  .month-group-header:hover { border-color: var(--bx-mid); }
+  .month-group-header .mgh-title { font-family:'Lora',serif; font-weight:700; color:var(--bx); font-size:14px; flex:1; }
+  .month-group-header .mgh-stats { display:flex; gap:16px; font-size:12px; color:var(--muted); flex-wrap:wrap; }
+  .month-group-header .mgh-stats b { color: var(--text); }
+  .month-group-header .mgh-chevron { transition: transform .18s; font-size:12px; color:var(--muted); }
+  .month-group.collapsed .mgh-chevron { transform: rotate(-90deg); }
+  .month-group.collapsed .month-group-body { display:none; }
+  .month-group-body { margin: 6px 0 16px; }
+
+  .period-ctrl { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:18px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px 18px; box-shadow: 0 1px 4px rgba(75,16,32,0.07); }
+  .period-ctrl label { font-size:11px; font-weight:700; color:var(--br); text-transform:uppercase; letter-spacing:.06em; margin-right:4px; }
+  .view-toggle { display:flex; border:1px solid var(--border); border-radius:9px; overflow:hidden; }
+  .view-toggle button { padding:8px 16px; border:none; background:var(--surface); color:var(--muted); font-size:12px; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; }
+  .view-toggle button.active { background:var(--bx); color:#fff; }
 
   .parc-row  { display: flex; flex-direction: column; gap: 5px; }
   .parc-line { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
@@ -187,7 +210,7 @@
   .parc-ctrl label { font-size: 12px; font-weight: 600; color: var(--muted); }
   .parc-ctrl select { padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 13px; background: #fff; color: var(--text); outline: none; }
   .parc-inputs { display: flex; flex-direction: column; gap: 10px; }
-  .parc-input-row { display: grid; grid-template-columns: 30px 1fr 1fr 1fr 1fr; gap: 8px; align-items: end; background: var(--surface2); border-radius: 10px; padding: 12px; border: 1px solid var(--border); }
+  .parc-input-row { display: grid; grid-template-columns: 30px 1fr 1fr 1fr 1fr 1.3fr; gap: 8px; align-items: end; background: var(--surface2); border-radius: 10px; padding: 12px; border: 1px solid var(--border); }
   .pnum { font-size: 11px; font-weight: 700; color: var(--bx); text-align: center; padding-bottom: 4px; }
   .pfield { display: flex; flex-direction: column; gap: 4px; }
   .pfield label { font-size: 10px; font-weight: 700; color: var(--br); text-transform: uppercase; letter-spacing: .05em; }
@@ -334,12 +357,34 @@
 
   <!-- DASHBOARD -->
   <div class="panel active" id="panel-dashboard">
+    <div class="period-ctrl">
+      <label>Período</label>
+      <select class="filter" id="dashPeriodo" onchange="onDashPeriodoChange()">
+        <option value="mes-atual">Mês atual</option>
+        <option value="mes-anterior">Mês anterior</option>
+        <option value="ano-atual">Este ano</option>
+        <option value="tudo">Desde o início</option>
+        <option value="custom">Personalizado…</option>
+      </select>
+      <span id="dashPeriodoCustomWrap" style="display:none;gap:8px;align-items:center">
+        <input type="date" id="dashPeriodoDe" class="filter" onchange="renderDash()">
+        <span>→</span>
+        <input type="date" id="dashPeriodoAte" class="filter" onchange="renderDash()">
+      </span>
+      <label style="margin-left:10px">Visão</label>
+      <div class="view-toggle">
+        <button id="btnViewCompetencia" class="active" onclick="setDashView('competencia')">📄 Competência</button>
+        <button id="btnViewCaixa" onclick="setDashView('caixa')">💰 Caixa</button>
+      </div>
+      <span style="font-size:11px;color:var(--muted);margin-left:auto" id="dashPeriodoLabel"></span>
+    </div>
+
     <div class="kpis">
-      <div class="kpi k-bx"><div class="kpi-label">Parcelas em Atraso</div><div class="kpi-value" id="kpi-atrasado">—</div><div class="kpi-sub" id="kpi-atrasado-sub">—</div></div>
-      <div class="kpi k-br"><div class="kpi-label">NFs Parcial Atrasado</div><div class="kpi-value" id="kpi-parcial">—</div><div class="kpi-sub">Com pagamento incompleto</div></div>
-      <div class="kpi k-info"><div class="kpi-label">NFs Pendentes</div><div class="kpi-value" id="kpi-pendente">—</div><div class="kpi-sub" id="kpi-pendente-sub">—</div></div>
+      <div class="kpi k-info" id="kpiPeriodoBox"><div class="kpi-label" id="kpiPeriodoLabel">Faturado no Período (Competência)</div><div class="kpi-value" id="kpi-periodo">—</div><div class="kpi-sub" id="kpi-periodo-sub">—</div></div>
+      <div class="kpi k-bx"><div class="kpi-label">Parcelas em Atraso (hoje)</div><div class="kpi-value" id="kpi-atrasado">—</div><div class="kpi-sub" id="kpi-atrasado-sub">—</div></div>
       <div class="kpi k-warn"><div class="kpi-label">Recebíveis a Vencer</div><div class="kpi-value" id="kpi-avencer">—</div><div class="kpi-sub" id="kpi-avencer-sub">Parcelas em dia, não pagas</div></div>
-      <div class="kpi k-ok"><div class="kpi-label">Total Recebido</div><div class="kpi-value" id="kpi-recebido">—</div><div class="kpi-sub" id="kpi-recebido-sub">—</div></div>
+      <div class="kpi k-ok"><div class="kpi-label">Total Recebido (histórico)</div><div class="kpi-value" id="kpi-recebido">—</div><div class="kpi-sub" id="kpi-recebido-sub">—</div></div>
+      <div class="kpi" style="border-color:#2c1008;background:#f7ede6"><div class="kpi-label" style="color:#2c1008">Perdas no Período</div><div class="kpi-value" style="color:#2c1008" id="kpi-perda">—</div><div class="kpi-sub" id="kpi-perda-sub">—</div></div>
     </div>
 
     <div class="section-title">🚨 NFs com Parcelas em Atraso</div>
@@ -354,7 +399,20 @@
     <div class="section-title">Situação por Status</div>
     <div class="status-grid" id="statusGrid"></div>
 
-    <div class="section-title" style="margin-top:22px">📅 Recebíveis por Mês</div>
+    <div class="section-title" style="margin-top:22px">📊 Competência x Caixa — últimos e próximos meses</div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title">Faturado (competência) x Recebido (caixa), por mês</span>
+        <div class="chart-legend">
+          <div class="chart-leg-item"><div class="leg-dot" style="background:#2a4a6a"></div>Faturado (competência)</div>
+          <div class="chart-leg-item"><div class="leg-dot" style="background:#3d6b38"></div>Recebido (caixa)</div>
+          <div class="chart-leg-item"><div class="leg-dot" style="background:#2c1008"></div>Perdas</div>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="competenciaCaixaChart"></canvas></div>
+    </div>
+
+    <div class="section-title" style="margin-top:22px">📅 Recebíveis por Vencimento — próximos 8 meses</div>
     <div class="chart-card">
       <div class="chart-header">
         <span class="chart-title">Fluxo de Recebíveis — próximos 8 meses</span>
@@ -388,22 +446,21 @@
         <option>Todos</option><option>Pendente</option><option>Pago Parcial</option>
         <option>Pago Total</option><option>Atrasado</option><option>Cancelado</option>
       </select>
+      <select class="filter" id="filterOrigem" onchange="renderTable()">
+        <option value="Todas">Todas as origens</option>
+        <option value="Manual">Manual</option>
+        <option value="Freezer Externo">Freezer Externo</option>
+        <option value="Loja de Fábrica">Loja de Fábrica</option>
+      </select>
+      <select class="filter" id="groupMode" onchange="renderTable()">
+        <option value="competencia">Agrupar por competência (venda)</option>
+        <option value="vencimento">Agrupar por vencimento</option>
+        <option value="nenhum">Sem agrupamento</option>
+      </select>
       <span class="count-label" id="countLabel">0 registros</span>
       <button class="btn btn-br" onclick="openExport()" style="margin-left:4px">📥 Exportar</button>
     </div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr>
-          <th onclick="sortBy('codigo_cliente')">Cód.</th>
-          <th onclick="sortBy('numero_nota')">Nota Fiscal</th>
-          <th onclick="sortBy('valor_total')">Valor Total</th>
-          <th>Parcelas</th>
-          <th onclick="sortBy('status')">Status</th>
-          <th>Ações</th>
-        </tr></thead>
-        <tbody id="tableBody"><tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted)">Carregando...</td></tr></tbody>
-      </table>
-    </div>
+    <div id="tableGroups"></div>
   </div>
 </main>
 
@@ -437,6 +494,18 @@
           <select id="f-status">
             <option>Pendente</option><option>Pago Parcial</option>
             <option>Pago Total</option><option>Atrasado</option><option>Cancelado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Data da Venda (competência)</label>
+          <input id="f-datavenda" type="date"/>
+        </div>
+        <div class="form-group">
+          <label>Origem</label>
+          <select id="f-origem">
+            <option value="Manual">Manual</option>
+            <option value="Freezer Externo">Freezer Externo</option>
+            <option value="Loja de Fábrica">Loja de Fábrica</option>
           </select>
         </div>
         <div class="form-group full">
@@ -575,14 +644,19 @@ const MOCK = [
     parcelas:[{num:1,valor:3150,valor_recebido:3150,forma_pagamento:"Cartão",data_vencimento:"2024-03-28",pago:true,situacao:"Pago"}]},
 ];
 
-let rows=[], sortCol="numero_nota", sortDir="asc", editId=null, delId=null;
+let rows=[], sortCol="data_venda", sortDir="desc", editId=null, delId=null;
+let collapsedMonths = new Set();
 
 const fmtBRL  = v => Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const fmtDate = d => { try{const[y,m,dd]=d.split("-");return`${dd}/${m}/${y}`;}catch{return d||"";} };
-const isPLate = p => !p.pago && new Date() > new Date((p.data_vencimento||"9999-12-31")+"T23:59:59");
+const isPLate = p => !p.pago && p.situacao!=="Perda" && new Date() > new Date((p.data_vencimento||"9999-12-31")+"T23:59:59");
 const daysL   = d => Math.max(0,Math.floor((Date.now()-new Date(d+"T23:59:59"))/86400000));
 const totalRec= r => (r.parcelas||[]).reduce((s,p)=>s+Number(p.valor_recebido||0),0);
+const totalPerda = r => (r.parcelas||[]).filter(p=>p.situacao==="Perda").reduce((s,p)=>s+Number(p.valor||0),0);
 const hasLate = r => r.status!=="Pago Total"&&r.status!=="Cancelado"&&(r.parcelas||[]).some(isPLate);
+const monthKey = d => (d||"").slice(0,7);
+const monthLabel = key => { if(!key) return "Sem data"; const [y,m]=key.split("-"); return new Date(+y,+m-1,1).toLocaleString('pt-BR',{month:'long',year:'numeric'}); };
+function origemBadge(o){ const cls = o==="Freezer Externo"?"o-freezer":(o==="Loja de Fábrica"?"o-lojafab":"o-manual"); return `<span class="origem-badge ${cls}">${o||"Manual"}</span>`; }
 
 function toast(msg,type="ok"){ const el=document.createElement("div"); el.className=`toast ${type}`; el.textContent=(type==="ok"?"✅ ":"❌ ")+msg; document.body.appendChild(el); setTimeout(()=>el.remove(),3500); }
 
@@ -683,34 +757,150 @@ function renderChart() {
   });
 }
 
+let dashView = "competencia"; // "competencia" | "caixa"
+
+function setDashView(v){
+  dashView = v;
+  document.getElementById("btnViewCompetencia").classList.toggle("active", v==="competencia");
+  document.getElementById("btnViewCaixa").classList.toggle("active", v==="caixa");
+  document.getElementById("kpiPeriodoLabel").textContent = v==="competencia" ? "Faturado no Período (Competência)" : "Recebido no Período (Caixa)";
+  renderDash();
+}
+
+function onDashPeriodoChange(){
+  document.getElementById("dashPeriodoCustomWrap").style.display = document.getElementById("dashPeriodo").value==="custom" ? "inline-flex" : "none";
+  renderDash();
+}
+
+// Retorna {de, ate, label} em YYYY-MM-DD (inclusive) conforme o seletor de período do dashboard.
+function getDashPeriodRange(){
+  const modo = document.getElementById("dashPeriodo").value;
+  const hoje = new Date();
+  const y = hoje.getFullYear(), m = hoje.getMonth();
+  const toISO = d => d.toISOString().slice(0,10);
+  if (modo === "mes-atual") {
+    return { de: toISO(new Date(y,m,1)), ate: toISO(new Date(y,m+1,0)), label: monthLabel(`${y}-${String(m+1).padStart(2,'0')}`) };
+  }
+  if (modo === "mes-anterior") {
+    return { de: toISO(new Date(y,m-1,1)), ate: toISO(new Date(y,m,0)), label: monthLabel(`${y}-${String(m).padStart(2,'0')}`) };
+  }
+  if (modo === "ano-atual") {
+    return { de: toISO(new Date(y,0,1)), ate: toISO(new Date(y,11,31)), label: `Ano de ${y}` };
+  }
+  if (modo === "custom") {
+    const de = document.getElementById("dashPeriodoDe").value || null;
+    const ate = document.getElementById("dashPeriodoAte").value || null;
+    return { de, ate, label: de&&ate ? `${fmtDate(de)} → ${fmtDate(ate)}` : "Personalizado" };
+  }
+  return { de: null, ate: null, label: "Desde o início" };
+}
+
+let compCaixaChartInstance = null;
+
+function renderCompCaixaChart() {
+  const now = new Date();
+  const months = [];
+  for (let i = -5; i <= 2; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    months.push({ key: d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'), label: d.toLocaleString('pt-BR',{month:'short',year:'2-digit'}) });
+  }
+  const competencia = Array(months.length).fill(0);
+  const caixa = Array(months.length).fill(0);
+  const perdas = Array(months.length).fill(0);
+
+  rows.forEach(r => {
+    const idxComp = months.findIndex(m => m.key === monthKey(r.data_venda));
+    if (idxComp !== -1) competencia[idxComp] += Number(r.valor_total)||0;
+    (r.parcelas||[]).forEach(p => {
+      if (p.data_recebimento) {
+        const idxCaixa = months.findIndex(m => m.key === monthKey(p.data_recebimento));
+        if (idxCaixa !== -1) caixa[idxCaixa] += Number(p.valor_recebido)||0;
+      }
+      if (p.situacao === "Perda") {
+        const idxPerda = months.findIndex(m => m.key === monthKey(p.data_vencimento));
+        if (idxPerda !== -1) perdas[idxPerda] += Number(p.valor)||0;
+      }
+    });
+  });
+
+  const labels = months.map(m => m.label);
+  const ctx = document.getElementById('competenciaCaixaChart');
+  if (!ctx) return;
+  if (compCaixaChartInstance) { compCaixaChartInstance.destroy(); compCaixaChartInstance = null; }
+
+  compCaixaChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Faturado (competência)', data: competencia, backgroundColor: '#2a4a6a', borderRadius: 4, borderSkipped: false },
+        { label: 'Recebido (caixa)',       data: caixa,       backgroundColor: '#3d6b38', borderRadius: 4, borderSkipped: false },
+        { label: 'Perdas',                 data: perdas,      backgroundColor: '#2c1008', borderRadius: 4, borderSkipped: false },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + Number(ctx.parsed.y).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}) } }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { family: 'Inter', size: 11 }, color: '#8a6050' } },
+        y: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { font: { family: 'Inter', size: 11 }, color: '#8a6050', callback: v => 'R$ ' + (v>=1000 ? (v/1000).toFixed(0)+'k' : v) } }
+      }
+    }
+  });
+}
+
 function renderDash(){
+  const { de, ate, label } = getDashPeriodRange();
+  document.getElementById("dashPeriodoLabel").textContent = label;
+  const inRange = d => d && (!de || d >= de) && (!ate || d <= ate);
+
+  // ── KPI de período: Competência (por NF, data_venda) ou Caixa (por parcela, data_recebimento) ──
+  if (dashView === "competencia") {
+    const nfsPeriodo = rows.filter(r => inRange(r.data_venda));
+    const totalPeriodo = nfsPeriodo.reduce((s,r)=>s+Number(r.valor_total||0),0);
+    document.getElementById("kpi-periodo").textContent = fmtBRL(totalPeriodo);
+    document.getElementById("kpi-periodo-sub").textContent = nfsPeriodo.length+" NF(s) vendida(s) no período";
+  } else {
+    let totalCaixa = 0, qtdCaixa = 0;
+    rows.forEach(r => (r.parcelas||[]).forEach(p => {
+      if (p.data_recebimento && inRange(p.data_recebimento)) { totalCaixa += Number(p.valor_recebido||0); qtdCaixa++; }
+    }));
+    document.getElementById("kpi-periodo").textContent = fmtBRL(totalCaixa);
+    document.getElementById("kpi-periodo-sub").textContent = qtdCaixa+" parcela(s) recebida(s) no período";
+  }
+
+  // ── Perdas no período (usa data_vencimento como referência, perda não tem data_recebimento) ──
+  let perdaPeriodo = 0, qtdPerda = 0;
+  rows.forEach(r => (r.parcelas||[]).forEach(p => {
+    if (p.situacao==="Perda" && inRange(p.data_vencimento)) { perdaPeriodo += Number(p.valor||0); qtdPerda++; }
+  }));
+  document.getElementById("kpi-perda").textContent = fmtBRL(perdaPeriodo);
+  document.getElementById("kpi-perda-sub").textContent = qtdPerda+" parcela(s) de perda no período";
+
+  // ── KPIs globais (não dependem do período — são sempre "hoje") ──
   const lateParcelas=[]; let lateVal=0;
   rows.forEach(r=>(r.parcelas||[]).forEach(p=>{if(isPLate(p)){lateParcelas.push({...p,_r:r});lateVal+=Number(p.valor)-Number(p.valor_recebido||0);}}));
   const nfsLate   = rows.filter(hasLate);
-  const nfsParcial= rows.filter(r=>hasLate(r)&&r.status==="Pago Parcial");
-  const pending   = rows.filter(r=>r.status==="Pendente");
-  const totalPend = pending.reduce((s,r)=>s+Number(r.valor_total),0);
   const totalReceb= rows.reduce((s,r)=>s+totalRec(r),0);
   const pagas     = rows.filter(r=>r.status==="Pago Total");
 
-  // Recebíveis a vencer: parcelas não pagas e ainda não vencidas
   let aVencerVal = 0, aVencerQtd = 0;
   rows.forEach(r => {
     if(r.status==="Cancelado"||r.status==="Pago Total") return;
     (r.parcelas||[]).forEach(p => {
-      if(!p.pago && !isPLate(p)) { aVencerVal += Number(p.valor)-Number(p.valor_recebido||0); aVencerQtd++; }
+      if(!p.pago && !isPLate(p) && p.situacao!=="Perda") { aVencerVal += Number(p.valor)-Number(p.valor_recebido||0); aVencerQtd++; }
     });
   });
 
   document.getElementById("kpi-atrasado").textContent    = lateParcelas.length;
   document.getElementById("kpi-atrasado-sub").textContent= fmtBRL(lateVal)+" em aberto";
-  document.getElementById("kpi-parcial").textContent     = nfsParcial.length;
-  document.getElementById("kpi-pendente").textContent    = pending.length;
-  document.getElementById("kpi-pendente-sub").textContent= fmtBRL(totalPend);
   document.getElementById("kpi-avencer").textContent     = fmtBRL(aVencerVal);
   document.getElementById("kpi-avencer-sub").textContent = aVencerQtd+" parcela(s) dentro do prazo";
   document.getElementById("kpi-recebido").textContent    = fmtBRL(totalReceb);
-  document.getElementById("kpi-recebido-sub").textContent= pagas.length+" NFs quitadas";
+  document.getElementById("kpi-recebido-sub").textContent= pagas.length+" NFs quitadas (todo o período)";
   document.getElementById("alertCount").textContent      = nfsLate.length;
 
   const al=document.getElementById("alertList");
@@ -719,13 +909,13 @@ function renderDash(){
     const saldo=Number(r.valor_total)-totalRec(r);
     const lateCount=(r.parcelas||[]).filter(isPLate).length;
     const chips=(r.parcelas||[]).map(p=>{
-      const cl=p.pago?"chip-ok":(isPLate(p)?"chip-late":"chip-pend");
-      const lb=p.pago?"✓ Paga":(isPLate(p)?`${daysL(p.data_vencimento)}d atraso`:"Pendente");
+      const cl=p.situacao==="Perda"?"chip-perda":(p.pago?"chip-ok":(isPLate(p)?"chip-late":"chip-pend"));
+      const lb=p.situacao==="Perda"?"⊘ Perda":(p.pago?"✓ Paga":(isPLate(p)?`${daysL(p.data_vencimento)}d atraso`:"Pendente"));
       return `<div class="parc-chip ${cl}"><b>${p.num}ª · ${fmtBRL(p.valor)}</b><span>${fmtDate(p.data_vencimento)} · ${p.forma_pagamento}</span><span>${lb}</span></div>`;
     }).join("");
     return `<div class="alert-item">
       <div class="alert-item-main">
-        <div class="alert-item-nf">${nfLabel(r)} <span class="badge b-atrasado">Atraso</span></div>
+        <div class="alert-item-nf">${nfLabel(r)} <span class="badge b-atrasado">Atraso</span> ${origemBadge(r.origem)}</div>
         <div class="alert-item-cli">${r.nome_cliente||""} · ${r.codigo_cliente}</div>
       </div>
       <div class="alert-item-stat"><label>Parcelas vencidas</label><strong class="val-bx">${lateCount} de ${(r.parcelas||[]).length}</strong></div>
@@ -747,10 +937,60 @@ function renderDash(){
     return`<div class="status-card" style="background:${s.bg};border-color:${s.bc}"><div class="s-count" style="color:${s.cl}">${cnt}</div><div class="s-label" style="color:${s.cl}">${s.k}</div></div>`;
   }).join("");
   renderChart();
+  renderCompCaixaChart();
 }
 
 function bCls(s){return{Pendente:"b-pendente","Pago Parcial":"b-parcial","Pago Total":"b-pago",Atrasado:"b-atrasado",Cancelado:"b-cancelado"}[s]||"b-pendente";}
 function nfLabel(r){return r.numero_nota ? r.numero_nota : '<span style="color:var(--bx);font-style:italic;font-weight:600">Aguardando NF</span>';}
+
+function renderRowHtml(r){
+  const late  = hasLate(r);
+  const saldo = Number(r.valor_total)-totalRec(r);
+  const parcHtml=(r.parcelas||[]).map(p=>{
+    const pl = isPLate(p);
+    const isPerda = p.situacao==="Perda";
+    const bc = isPerda?"b-perda":(p.pago?"b-pago":(pl?"b-atrasado":"b-pendente"));
+    const lb = isPerda?"Perda":(p.pago?"Pago":(pl?`${daysL(p.data_vencimento)}d atraso`:"Pendente"));
+    return`<div class="parc-line">
+      <span class="parc-num">${p.num}ª</span>
+      <span class="parc-val">${fmtBRL(p.valor)}</span>
+      <span class="${pl?"parc-date-late":"parc-date"}">${fmtDate(p.data_vencimento)}</span>
+      <span class="p-badge ${bc}" style="border-color:currentColor">${p.forma_pagamento} · ${lb}</span>
+    </div>`;
+  }).join("");
+
+  return`<tr class="${late?"row-late":""}">
+    <td style="font-family:monospace;font-size:11px;color:var(--br);font-weight:700">${r.codigo_cliente}</td>
+    <td><strong>${nfLabel(r)}</strong>${late?'<span class="dot-late"></span>':""}<br><small style="color:var(--muted);font-size:11px">${r.nome_cliente||""}</small><br>${origemBadge(r.origem)}</td>
+    <td style="font-size:12px;color:var(--muted)">${r.data_venda?fmtDate(r.data_venda):"—"}</td>
+    <td><span style="font-weight:700">${fmtBRL(r.valor_total)}</span>${saldo>0&&totalRec(r)>0?`<br><small style="color:var(--bx);font-size:11px">falta ${fmtBRL(saldo)}</small>`:""}</td>
+    <td><div class="parc-row">${parcHtml}</div></td>
+    <td><span class="badge ${bCls(r.status)}">${r.status}</span></td>
+    <td><div class="actions">
+      <button class="icon-btn check" title="${r.status==="Pago Total"?"Desmarcar":"Marcar pago total"}" onclick="togglePago(${r.id})">${r.status==="Pago Total"?"↩":"✓"}</button>
+      <button class="icon-btn edit"  onclick="openModal('edit',${r.id})">✏️</button>
+      <button class="icon-btn del"   onclick="openDel(${r.id})">🗑</button>
+    </div></td>
+  </tr>`;
+}
+
+function tableHead(){
+  return `<table>
+    <thead><tr>
+      <th onclick="sortBy('codigo_cliente')">Cód.</th>
+      <th onclick="sortBy('numero_nota')">Nota Fiscal</th>
+      <th onclick="sortBy('data_venda')">Competência</th>
+      <th onclick="sortBy('valor_total')">Valor Total</th>
+      <th>Parcelas</th>
+      <th onclick="sortBy('status')">Status</th>
+      <th>Ações</th>
+    </tr></thead><tbody>`;
+}
+
+function toggleMonthGroup(key){
+  if (collapsedMonths.has(key)) collapsedMonths.delete(key); else collapsedMonths.add(key);
+  renderTable();
+}
 
 function clearDateFilter(){
   document.getElementById("filterDe").value="";
@@ -761,16 +1001,17 @@ function clearDateFilter(){
 function renderTable(){
   const q   = document.getElementById("searchInput").value.toLowerCase();
   const fs  = document.getElementById("filterStatus").value;
+  const fo  = document.getElementById("filterOrigem").value;
+  const gm  = document.getElementById("groupMode").value;
   const de  = document.getElementById("filterDe").value;
   const ate = document.getElementById("filterAte").value;
   const hasDateFilter = de || ate;
 
-  // Filter rows — when date filter active, show NFs that have at least one
-  // parcela whose vencimento falls in the range
   let data = rows.filter(r => {
     const mText = r.codigo_cliente?.toLowerCase().includes(q)||r.nome_cliente?.toLowerCase().includes(q)||r.numero_nota?.toLowerCase().includes(q);
     if (!mText) return false;
     if (fs !== "Todos" && r.status !== fs) return false;
+    if (fo !== "Todas" && (r.origem||"Manual") !== fo) return false;
     if (hasDateFilter) {
       return (r.parcelas||[]).some(p => {
         const v = p.data_vencimento || "";
@@ -786,11 +1027,9 @@ function renderTable(){
 
   document.getElementById("countLabel").textContent = data.length+" registros";
 
-  // ── SUMMARY BAR ──────────────────────────────────────────────────────────
-  const sb = document.getElementById("summaryBar");
+  // ── SUMMARY BAR (filtro de vencimento / status) ──────────────────────────
+  const sbEl = document.getElementById("summaryBar");
   const di = document.getElementById("dateResultInfo");
-
-  // Compute stats from parcelas in range (or all if no date filter)
   const parcsInRange = [];
   data.forEach(r => {
     (r.parcelas||[]).forEach(p => {
@@ -799,7 +1038,6 @@ function renderTable(){
       parcsInRange.push({r, p});
     });
   });
-
   const totalVal  = parcsInRange.reduce((s,{p})=>s+Number(p.valor||0),0);
   const statMap   = {};
   parcsInRange.forEach(({r,p})=>{
@@ -808,9 +1046,8 @@ function renderTable(){
     statMap[st].val += Number(p.valor||0);
     statMap[st].cnt++;
   });
-
   if (hasDateFilter || fs !== "Todos") {
-    sb.style.display = "grid";
+    sbEl.style.display = "grid";
     const stDefs = [
       {k:"Total do Período", cls:"sc-total",    val:totalVal,                cnt:parcsInRange.length+" parcelas"},
       {k:"Atrasado",         cls:"sc-atrasado", val:statMap["Atrasado"]?.val||0,   cnt:(statMap["Atrasado"]?.cnt||0)+" parc."},
@@ -818,7 +1055,7 @@ function renderTable(){
       {k:"Pago Parcial",     cls:"sc-parcial",  val:statMap["Pago Parcial"]?.val||0,cnt:(statMap["Pago Parcial"]?.cnt||0)+" parc."},
       {k:"Pago Total",       cls:"sc-pago",     val:statMap["Pago Total"]?.val||0,  cnt:(statMap["Pago Total"]?.cnt||0)+" parc."},
     ];
-    sb.innerHTML = stDefs.map(s=>`
+    sbEl.innerHTML = stDefs.map(s=>`
       <div class="summary-card ${s.cls}">
         <span class="sc-label">${s.k}</span>
         <span class="sc-value">${fmtBRL(s.val)}</span>
@@ -827,46 +1064,41 @@ function renderTable(){
     const label = de && ate ? `${fmtDate(de)} → ${fmtDate(ate)}` : de ? `A partir de ${fmtDate(de)}` : ate ? `Até ${fmtDate(ate)}` : "";
     di.textContent = label ? `Período: ${label}` : "";
   } else {
-    sb.style.display = "none";
+    sbEl.style.display = "none";
     di.textContent = "";
   }
 
-  // ── TABLE ROWS ────────────────────────────────────────────────────────────
-  const tb = document.getElementById("tableBody");
-  if(!data.length){tb.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:36px;color:var(--muted)">Nenhum registro encontrado.</td></tr>`;return;}
+  // ── RENDERIZAÇÃO: agrupada por mês, ou lista única ───────────────────────
+  const wrap = document.getElementById("tableGroups");
+  if (!data.length) { wrap.innerHTML = `<div class="table-wrap"><div class="empty-state">Nenhum registro encontrado.</div></div>`; return; }
 
-  tb.innerHTML = data.map(r=>{
-    const late  = hasLate(r);
-    const saldo = Number(r.valor_total)-totalRec(r);
+  if (gm === "nenhum") {
+    wrap.innerHTML = `<div class="table-wrap">${tableHead()}${data.map(renderRowHtml).join("")}</tbody></table></div>`;
+    return;
+  }
 
-    // When date filter active, highlight only parcelas in range
-    const parcHtml=(r.parcelas||[]).map(p=>{
-      const v  = p.data_vencimento||"";
-      const inRange = !hasDateFilter || ((!de||v>=de)&&(!ate||v<=ate));
-      const pl = isPLate(p);
-      const bc = p.pago?"b-pago":(pl?"b-atrasado":"b-pendente");
-      const lb = p.pago?"Pago":(pl?`${daysL(p.data_vencimento)}d atraso`:"Pendente");
-      const highlight = hasDateFilter && inRange ? "background:rgba(107,26,42,0.06);border-radius:6px;padding:2px 4px;" : "";
-      return`<div class="parc-line" style="${highlight}${!inRange&&hasDateFilter?"opacity:0.4":""}">
-        <span class="parc-num">${p.num}ª</span>
-        <span class="parc-val">${fmtBRL(p.valor)}</span>
-        <span class="${pl?"parc-date-late":"parc-date"}">${fmtDate(p.data_vencimento)}</span>
-        <span class="p-badge ${bc}" style="border-color:currentColor">${p.forma_pagamento} · ${lb}</span>
-      </div>`;
-    }).join("");
+  const keyFn = gm === "competencia" ? (r => monthKey(r.data_venda)) : (r => monthKey(r.data_vencimento));
+  const groups = {};
+  data.forEach(r => { const k = keyFn(r)||"—"; (groups[k]=groups[k]||[]).push(r); });
+  const sortedKeys = Object.keys(groups).sort((a,b)=> a<b?1:-1); // mais recente primeiro
 
-    return`<tr class="${late?"row-late":""}">
-      <td style="font-family:monospace;font-size:11px;color:var(--br);font-weight:700">${r.codigo_cliente}</td>
-      <td><strong>${nfLabel(r)}</strong>${late?'<span class="dot-late"></span>':""}<br><small style="color:var(--muted);font-size:11px">${r.nome_cliente||""}</small></td>
-      <td><span style="font-weight:700">${fmtBRL(r.valor_total)}</span>${saldo>0&&totalRec(r)>0?`<br><small style="color:var(--bx);font-size:11px">falta ${fmtBRL(saldo)}</small>`:""}</td>
-      <td><div class="parc-row">${parcHtml}</div></td>
-      <td><span class="badge ${bCls(r.status)}">${r.status}</span></td>
-      <td><div class="actions">
-        <button class="icon-btn check" title="${r.status==="Pago Total"?"Desmarcar":"Marcar pago total"}" onclick="togglePago(${r.id})">${r.status==="Pago Total"?"↩":"✓"}</button>
-        <button class="icon-btn edit"  onclick="openModal('edit',${r.id})">✏️</button>
-        <button class="icon-btn del"   onclick="openDel(${r.id})">🗑</button>
-      </div></td>
-    </tr>`;
+  wrap.innerHTML = sortedKeys.map(key => {
+    const grupo = groups[key];
+    const totalGrupo = grupo.reduce((s,r)=>s+Number(r.valor_total||0),0);
+    const recebidoGrupo = grupo.reduce((s,r)=>s+totalRec(r),0);
+    const collapsed = collapsedMonths.has(key);
+    return `<div class="month-group ${collapsed?'collapsed':''}">
+      <div class="month-group-header" onclick="toggleMonthGroup('${key}')">
+        <span class="mgh-chevron">▼</span>
+        <span class="mgh-title">${monthLabel(key)==="Sem data"?"Sem data":monthLabel(key).replace(/^\w/,c=>c.toUpperCase())}</span>
+        <div class="mgh-stats">
+          <span><b>${grupo.length}</b> NF(s)</span>
+          <span>Total: <b>${fmtBRL(totalGrupo)}</b></span>
+          <span>Recebido: <b>${fmtBRL(recebidoGrupo)}</b></span>
+        </div>
+      </div>
+      <div class="month-group-body"><div class="table-wrap">${tableHead()}${grupo.map(renderRowHtml).join("")}</tbody></table></div></div>
+    </div>`;
   }).join("");
 }
 
@@ -875,7 +1107,8 @@ function sortBy(col){sortDir=sortCol===col?(sortDir==="asc"?"desc":"asc"):"asc";
 async function togglePago(id){
   const r=rows.find(x=>x.id===id);if(!r)return;
   const ns=r.status==="Pago Total"?"Pendente":"Pago Total";
-  const up={...r,status:ns,parcelas:(r.parcelas||[]).map(p=>({...p,pago:ns==="Pago Total",valor_recebido:ns==="Pago Total"?p.valor:0,situacao:ns==="Pago Total"?"Pago":"Pendente"}))};
+  const hoje=new Date().toISOString().slice(0,10);
+  const up={...r,status:ns,parcelas:(r.parcelas||[]).map(p=>({...p,pago:ns==="Pago Total",valor_recebido:ns==="Pago Total"?p.valor:0,situacao:ns==="Pago Total"?"Pago":"Pendente",data_recebimento:ns==="Pago Total"?(p.data_recebimento||hoje):null}))};
   if(sb){await sb.from("cobrancas").update({status:ns,parcelas:JSON.stringify(up.parcelas)}).eq("id",id);}
   else{const i=rows.findIndex(x=>x.id===id);if(i!==-1)rows[i]=up;}
   await loadData();
@@ -890,15 +1123,32 @@ function renderParcInputs(existente){
   document.getElementById("parcInputs").innerHTML=Array.from({length:n},(_,i)=>{
     const p=old[i]||{};
     const fOpts=FORMAS.map(f=>`<option ${(p.forma_pagamento||"Boleto")===f?"selected":""}>${f}</option>`).join("");
-    const sOpts=["Pendente","Pago","Atrasado"].map(s=>`<option ${(p.situacao||"Pendente")===s?"selected":""}>${s}</option>`).join("");
+    const sOpts=["Pendente","Pago","Atrasado","Perda"].map(s=>`<option ${(p.situacao||"Pendente")===s?"selected":""}>${s}</option>`).join("");
     return`<div class="parc-input-row">
       <div class="pnum">${i+1}ª</div>
       <div class="pfield"><label>Valor R$</label><input type="number" id="pv${i}" min="0" step="0.01" value="${p.valor||""}" placeholder="0,00"/></div>
       <div class="pfield"><label>Vencimento</label><input type="date" id="pd${i}" value="${p.data_vencimento||""}"/></div>
       <div class="pfield hide-sm"><label>Forma</label><select id="pf${i}">${fOpts}</select></div>
-      <div class="pfield"><label>Situação</label><select id="ps${i}">${sOpts}</select></div>
+      <div class="pfield"><label>Situação</label><select id="ps${i}" onchange="updateParcExtra(${i})">${sOpts}</select></div>
+      <div class="pfield" id="pextraWrap${i}">${parcExtraHTML(i, p.situacao||"Pendente", p)}</div>
     </div>`;
   }).join("");
+}
+
+// Campo que muda de significado conforme a situação: data de recebimento (Pago) ou motivo (Perda).
+function parcExtraHTML(i, situacao, p){
+  p = p || {};
+  if (situacao === "Pago") {
+    return `<label>Data recebimento</label><input type="date" id="pr${i}" value="${p.data_recebimento||new Date().toISOString().slice(0,10)}"/>`;
+  }
+  if (situacao === "Perda") {
+    return `<label>Motivo da perda</label><input type="text" id="pr${i}" value="${(p.motivo_perda||"").replace(/"/g,'&quot;')}" placeholder="Ex: inadimplência, cliente encerrou..."/>`;
+  }
+  return `<label style="opacity:.4">—</label><input type="text" id="pr${i}" disabled placeholder="—" style="opacity:.4"/>`;
+}
+function updateParcExtra(i){
+  const situacao = document.getElementById(`ps${i}`)?.value || "Pendente";
+  document.getElementById(`pextraWrap${i}`).innerHTML = parcExtraHTML(i, situacao, {});
 }
 
 function distribuir(){
@@ -914,7 +1164,11 @@ function collectParcelas(){
   return Array.from({length:n},(_,i)=>{
     const sit=document.getElementById(`ps${i}`)?.value||"Pendente";
     const val=parseFloat(document.getElementById(`pv${i}`)?.value)||0;
-    return{num:i+1,valor:val,valor_recebido:sit==="Pago"?val:0,forma_pagamento:document.getElementById(`pf${i}`)?.value||"Boleto",data_vencimento:document.getElementById(`pd${i}`)?.value||"",pago:sit==="Pago",situacao:sit};
+    const extra=document.getElementById(`pr${i}`)?.value||"";
+    const base={num:i+1,valor:val,valor_recebido:sit==="Pago"?val:0,forma_pagamento:document.getElementById(`pf${i}`)?.value||"Boleto",data_vencimento:document.getElementById(`pd${i}`)?.value||"",pago:sit==="Pago",situacao:sit};
+    if(sit==="Pago") base.data_recebimento = extra || new Date().toISOString().slice(0,10);
+    if(sit==="Perda") base.motivo_perda = extra || null;
+    return base;
   });
 }
 
@@ -923,6 +1177,8 @@ function openModal(mode,id=null){
   ["f-codigo","f-nota","f-nome","f-obs"].forEach(x=>document.getElementById(x).value="");
   document.getElementById("f-total").value="";
   document.getElementById("f-status").value="Pendente";
+  document.getElementById("f-origem").value="Manual";
+  document.getElementById("f-datavenda").value=new Date().toISOString().slice(0,10);
   document.getElementById("numParc").value="1";
   if(mode==="edit"&&id){
     const r=rows.find(x=>x.id===id);if(!r)return;
@@ -933,6 +1189,8 @@ function openModal(mode,id=null){
     document.getElementById("f-nome").value=r.nome_cliente||"";
     document.getElementById("f-total").value=r.valor_total||"";
     document.getElementById("f-status").value=r.status||"Pendente";
+    document.getElementById("f-origem").value=r.origem||"Manual";
+    document.getElementById("f-datavenda").value=r.data_venda||"";
     document.getElementById("f-obs").value=r.observacoes||"";
     document.getElementById("numParc").value=(r.parcelas||[]).length||1;
     renderParcInputs(r.parcelas||[]);
@@ -952,7 +1210,7 @@ async function saveRecord(){
   if(!codigo||!total){toast("Preencha os campos obrigatórios (*)","err");return;}
   const parcelas=collectParcelas();
   if(parcelas.some(p=>!p.data_vencimento)){toast("Preencha as datas de vencimento","err");return;}
-  const payload={codigo_cliente:codigo,numero_nota:nota||null,nome_cliente:document.getElementById("f-nome").value.trim(),valor_total:total,status:document.getElementById("f-status").value,observacoes:document.getElementById("f-obs").value.trim(),parcelas};
+  const payload={codigo_cliente:codigo,numero_nota:nota||null,nome_cliente:document.getElementById("f-nome").value.trim(),valor_total:total,status:document.getElementById("f-status").value,origem:document.getElementById("f-origem").value,data_venda:document.getElementById("f-datavenda").value||null,observacoes:document.getElementById("f-obs").value.trim(),parcelas};
   const btn=document.getElementById("saveBtn");btn.disabled=true;btn.textContent="Salvando...";
   if(editId){
     payload.id=editId;
@@ -992,7 +1250,24 @@ function switchTab(tab,el){
 }
 
 // ── EXPORT ──────────────────────────────────────────────────────────────────
+let expView = "vencimento"; // "vencimento" | "competencia" | "caixa"
+
+function setExpView(v){
+  expView = v;
+  document.getElementById("expViewVenc").classList.toggle("active", v==="vencimento");
+  document.getElementById("expViewComp").classList.toggle("active", v==="competencia");
+  document.getElementById("expViewCaixa").classList.toggle("active", v==="caixa");
+  const hints = {
+    vencimento:  "Filtra e agrupa pela data de vencimento das parcelas — bom pra cobrança/inadimplência.",
+    competencia: "Filtra pela data da venda (competência) — bom pra saber quanto foi faturado em cada período, independente de quando foi pago.",
+    caixa:       "Filtra pela data em que o dinheiro entrou de fato — só inclui parcelas já recebidas. Bom pra fluxo de caixa real.",
+  };
+  document.getElementById("expViewHint").textContent = hints[v];
+  updateExpPreview();
+}
+
 function openExport() {
+  setExpView("vencimento");
   updateExpPreview();
   document.getElementById('expOverlay').classList.add('open');
 }
@@ -1017,7 +1292,24 @@ function buildExpRows() {
 
   rows.forEach(r => {
     if (!statuses.includes(r.status)) return;
+
+    if (expView === "competencia") {
+      const venda = r.data_venda || '';
+      if (de && venda < de) return;
+      if (ate && venda > ate) return;
+      (r.parcelas||[]).forEach(p => result.push({ nf: r, parc: p }));
+      return;
+    }
+
     (r.parcelas||[]).forEach(p => {
+      if (expView === "caixa") {
+        if (!p.data_recebimento) return; // só o que já entrou de fato
+        if (de && p.data_recebimento < de) return;
+        if (ate && p.data_recebimento > ate) return;
+        result.push({ nf: r, parc: p });
+        return;
+      }
+      // vencimento (padrão)
       const venc = p.data_vencimento || '';
       if (de  && venc < de)  return;
       if (ate && venc > ate) return;
@@ -1029,9 +1321,9 @@ function buildExpRows() {
 
 function updateExpPreview() {
   const data = buildExpRows();
-  const nfs  = new Set(data.map(d => d.nf.numero_nota)).size;
+  const nfs  = new Set(data.map(d => d.nf.numero_nota || d.nf.id)).size;
   document.getElementById('expPreview').innerHTML =
-    `<strong>${data.length}</strong> parcelas de <strong>${nfs}</strong> notas fiscais serão exportadas.`;
+    `<strong>${data.length}</strong> parcelas de <strong>${nfs}</strong> notas fiscais serão exportadas (visão: <strong>${expView}</strong>).`;
 }
 
 // Attach preview update to filter changes
@@ -1050,78 +1342,76 @@ function exportXLSX() {
   const fmtD = d => { try{ const[y,m,dd]=d.split('-'); return `${dd}/${m}/${y}`; }catch{return d||'';} };
   const fmtN = v => Number(v||0);
 
-  // Build header
   const header = [];
-  if (col('ec-codigo'))   header.push('Código Cliente');
-  if (col('ec-nome'))     header.push('Nome Cliente');
-  if (col('ec-nota'))     header.push('Nota Fiscal');
-  if (col('ec-total'))    header.push('Valor Total NF (R$)');
-  if (col('ec-parcela'))  header.push('Parcela');
-  if (col('ec-valparc'))  header.push('Valor Parcela (R$)');
-  if (col('ec-forma'))    header.push('Forma de Pagamento');
-  if (col('ec-venc'))     header.push('Data de Vencimento');
-  if (col('ec-recebido')) header.push('Valor Recebido (R$)');
-  if (col('ec-situacao')) header.push('Situação Parcela');
-  if (col('ec-status'))   header.push('Status NF');
-  if (col('ec-obs'))      header.push('Observações');
+  if (col('ec-codigo'))     header.push('Código Cliente');
+  if (col('ec-nome'))       header.push('Nome Cliente');
+  if (col('ec-nota'))       header.push('Nota Fiscal');
+  if (col('ec-total'))      header.push('Valor Total NF (R$)');
+  if (col('ec-parcela'))    header.push('Parcela');
+  if (col('ec-valparc'))    header.push('Valor Parcela (R$)');
+  if (col('ec-forma'))      header.push('Forma de Pagamento');
+  if (col('ec-venc'))       header.push('Data de Vencimento');
+  if (col('ec-recebido'))   header.push('Valor Recebido (R$)');
+  if (col('ec-situacao'))   header.push('Situação Parcela');
+  if (col('ec-status'))     header.push('Status NF');
+  if (col('ec-origem'))     header.push('Origem');
+  if (col('ec-datavenda'))  header.push('Data da Venda (Competência)');
+  if (col('ec-datareceb'))  header.push('Data de Recebimento');
+  if (col('ec-motivoperda'))header.push('Motivo da Perda');
+  if (col('ec-obs'))        header.push('Observações');
 
-  // Build rows
   const wsData = [header];
   data.forEach(({ nf: r, parc: p }) => {
     const row = [];
-    if (col('ec-codigo'))   row.push(r.codigo_cliente || '');
-    if (col('ec-nome'))     row.push(r.nome_cliente   || '');
-    if (col('ec-nota'))     row.push(r.numero_nota    || '');
-    if (col('ec-total'))    row.push(fmtN(r.valor_total));
-    if (col('ec-parcela'))  row.push(`${p.num}ª`);
-    if (col('ec-valparc'))  row.push(fmtN(p.valor));
-    if (col('ec-forma'))    row.push(p.forma_pagamento || '');
-    if (col('ec-venc'))     row.push(fmtD(p.data_vencimento));
-    if (col('ec-recebido')) row.push(fmtN(p.valor_recebido));
-    if (col('ec-situacao')) row.push(p.situacao || (p.pago ? 'Pago' : 'Pendente'));
-    if (col('ec-status'))   row.push(r.status || '');
-    if (col('ec-obs'))      row.push(r.observacoes || '');
+    if (col('ec-codigo'))     row.push(r.codigo_cliente || '');
+    if (col('ec-nome'))       row.push(r.nome_cliente   || '');
+    if (col('ec-nota'))       row.push(r.numero_nota    || '');
+    if (col('ec-total'))      row.push(fmtN(r.valor_total));
+    if (col('ec-parcela'))    row.push(`${p.num}ª`);
+    if (col('ec-valparc'))    row.push(fmtN(p.valor));
+    if (col('ec-forma'))      row.push(p.forma_pagamento || '');
+    if (col('ec-venc'))       row.push(fmtD(p.data_vencimento));
+    if (col('ec-recebido'))   row.push(fmtN(p.valor_recebido));
+    if (col('ec-situacao'))   row.push(p.situacao || (p.pago ? 'Pago' : 'Pendente'));
+    if (col('ec-status'))     row.push(r.status || '');
+    if (col('ec-origem'))     row.push(r.origem || 'Manual');
+    if (col('ec-datavenda'))  row.push(fmtD(r.data_venda));
+    if (col('ec-datareceb'))  row.push(p.data_recebimento ? fmtD(p.data_recebimento) : '');
+    if (col('ec-motivoperda'))row.push(p.motivo_perda || '');
+    if (col('ec-obs'))        row.push(r.observacoes || '');
     wsData.push(row);
   });
 
-  // Build workbook
   const wb  = XLSX.utils.book_new();
   const ws  = XLSX.utils.aoa_to_sheet(wsData);
-
-  // Column widths
   const colWidths = header.map(h => ({ wch: Math.max(h.length + 2, 18) }));
   ws['!cols'] = colWidths;
-
-  // Style header row (bold + background) via cell meta
   header.forEach((_, ci) => {
     const cellRef = XLSX.utils.encode_cell({ r: 0, c: ci });
     if (!ws[cellRef]) return;
-    ws[cellRef].s = {
-      font:    { bold: true, color: { rgb: 'FFFFFF' } },
-      fill:    { fgColor: { rgb: '6B1A2A' } },
-      alignment: { horizontal: 'center' }
-    };
+    ws[cellRef].s = { font: { bold: true, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '6B1A2A' } }, alignment: { horizontal: 'center' } };
   });
+  const sheetNames = { vencimento: 'Cobranças (Vencimento)', competencia: 'Cobranças (Competência)', caixa: 'Cobranças (Caixa)' };
+  XLSX.utils.book_append_sheet(wb, ws, sheetNames[expView]);
 
-  XLSX.utils.book_append_sheet(wb, ws, 'Cobranças');
-
-  // Summary sheet
-  const totalNFs     = new Set(data.map(d=>d.nf.numero_nota)).size;
-  const totalVal     = data.reduce((s,d)=>s+Number(d.parc.valor||0),0);
-  const totalRecebido= data.reduce((s,d)=>s+Number(d.parc.valor_recebido||0),0);
-  const totalPendente= totalVal - totalRecebido;
-  const today        = new Date().toLocaleDateString('pt-BR');
+  // ── Resumo geral ──
+  const totalNFs      = new Set(data.map(d=>d.nf.numero_nota || d.nf.id)).size;
+  const totalVal       = expView==="caixa" ? data.reduce((s,d)=>s+Number(d.parc.valor_recebido||0),0) : data.reduce((s,d)=>s+Number(d.parc.valor||0),0);
+  const totalRecebido  = data.reduce((s,d)=>s+Number(d.parc.valor_recebido||0),0);
+  const totalPerda     = data.filter(d=>d.parc.situacao==="Perda").reduce((s,d)=>s+Number(d.parc.valor||0),0);
+  const today          = new Date().toLocaleDateString('pt-BR');
+  const visaoLabel     = { vencimento:'Regime de Vencimento', competencia:'Regime de Competência', caixa:'Regime de Caixa' }[expView];
 
   const sumData = [
-    ['RELATÓRIO DE COBRANÇAS — YEEZ'],
+    ['RELATÓRIO DE RECEBÍVEIS — '+visaoLabel.toUpperCase()],
     ['Gerado em:', today],
     [''],
     ['Resumo Geral', ''],
     ['Total de NFs exportadas', totalNFs],
     ['Total de parcelas', data.length],
-    ['Valor total (R$)', totalVal],
-    ['Total recebido (R$)', totalRecebido],
-    ['Saldo pendente (R$)', totalPendente],
+    [expView==="caixa" ? 'Valor total recebido no período (R$)' : 'Valor total (R$)', totalVal],
+    ['Total recebido — todas as parcelas do recorte (R$)', totalRecebido],
+    ['Total em perdas — todas as parcelas do recorte (R$)', totalPerda],
     [''],
     ['Quebra por Status', 'Parcelas', 'Valor (R$)'],
     ...['Pendente','Pago Parcial','Pago Total','Atrasado','Cancelado'].map(st => {
@@ -1130,11 +1420,30 @@ function exportXLSX() {
     })
   ];
   const wsSummary = XLSX.utils.aoa_to_sheet(sumData);
-  wsSummary['!cols'] = [{wch:28},{wch:20},{wch:20}];
+  wsSummary['!cols'] = [{wch:32},{wch:20},{wch:20}];
   XLSX.utils.book_append_sheet(wb, wsSummary, 'Resumo');
 
-  // Download
-  const filename = `cobrancas_yeez_${new Date().toISOString().slice(0,10)}.xlsx`;
+  // ── Resumo mensal (competência agrupa por data_venda; caixa por data_recebimento; vencimento por data_vencimento) ──
+  const monthDateFn = expView==="competencia" ? (d=>d.nf.data_venda) : (expView==="caixa" ? (d=>d.parc.data_recebimento) : (d=>d.parc.data_vencimento));
+  const porMes = {};
+  data.forEach(d => {
+    const k = monthKey(monthDateFn(d)) || 'sem-data';
+    if (!porMes[k]) porMes[k] = { valor:0, recebido:0, perda:0, qtd:0 };
+    porMes[k].valor += expView==="caixa" ? Number(d.parc.valor_recebido||0) : Number(d.parc.valor||0);
+    porMes[k].recebido += Number(d.parc.valor_recebido||0);
+    if (d.parc.situacao==="Perda") porMes[k].perda += Number(d.parc.valor||0);
+    porMes[k].qtd++;
+  });
+  const mesRows = [['Mês', 'Qtd. Parcelas', 'Valor (R$)', 'Recebido (R$)', 'Perdas (R$)']];
+  Object.keys(porMes).sort().forEach(k => {
+    const m = porMes[k];
+    mesRows.push([k==='sem-data'?'Sem data':monthLabel(k), m.qtd, m.valor, m.recebido, m.perda]);
+  });
+  const wsMes = XLSX.utils.aoa_to_sheet(mesRows);
+  wsMes['!cols'] = [{wch:22},{wch:16},{wch:18},{wch:18},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, wsMes, 'Resumo Mensal');
+
+  const filename = `recebiveis_${expView}_${new Date().toISOString().slice(0,10)}.xlsx`;
   XLSX.writeFile(wb, filename);
   toast('Relatório exportado com sucesso!');
   closeExp();
@@ -1166,12 +1475,26 @@ checkSession();
           <div class="exp-check"><input type="checkbox" id="ec-recebido" checked><label for="ec-recebido">Valor Recebido</label></div>
           <div class="exp-check"><input type="checkbox" id="ec-situacao" checked><label for="ec-situacao">Situação da Parcela</label></div>
           <div class="exp-check"><input type="checkbox" id="ec-status"   checked><label for="ec-status">Status da NF</label></div>
+          <div class="exp-check"><input type="checkbox" id="ec-origem"   checked><label for="ec-origem">Origem</label></div>
+          <div class="exp-check"><input type="checkbox" id="ec-datavenda"><label for="ec-datavenda">Data da Venda (Competência)</label></div>
+          <div class="exp-check"><input type="checkbox" id="ec-datareceb"><label for="ec-datareceb">Data de Recebimento</label></div>
+          <div class="exp-check"><input type="checkbox" id="ec-motivoperda"><label for="ec-motivoperda">Motivo da Perda</label></div>
           <div class="exp-check"><input type="checkbox" id="ec-obs"            ><label for="ec-obs">Observações</label></div>
         </div>
       </div>
 
       <div class="exp-section">
-        <h4>Filtrar por período de vencimento</h4>
+        <h4>Visão do relatório</h4>
+        <div class="view-toggle" style="width:fit-content">
+          <button type="button" id="expViewVenc" class="active" onclick="setExpView('vencimento')">📆 Vencimento</button>
+          <button type="button" id="expViewComp" onclick="setExpView('competencia')">📄 Competência</button>
+          <button type="button" id="expViewCaixa" onclick="setExpView('caixa')">💰 Caixa</button>
+        </div>
+        <p style="font-size:11px;color:var(--muted);margin-top:8px" id="expViewHint">Filtra e agrupa pela data de vencimento das parcelas — bom pra cobrança/inadimplência.</p>
+      </div>
+
+      <div class="exp-section">
+        <h4>Filtrar por período</h4>
         <div class="exp-period">
           <div class="form-group">
             <label>De</label>
