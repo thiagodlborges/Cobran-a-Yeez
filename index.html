@@ -653,7 +653,7 @@ async function loadData(){
 
 async function saveToDB(payload){
   if(!sb){toast("Configure o Supabase!","err");return false;}
-  const p={...payload,parcelas:JSON.stringify(payload.parcelas)};
+  const p={...payload,parcelas:payload.parcelas};
   if(p.id){const{id,...rest}=p;const{error}=await sb.from("cobrancas").update(rest).eq("id",id);if(error){toast("Erro: "+error.message,"err");return false;}}
   else{const{error}=await sb.from("cobrancas").insert(p);if(error){toast("Erro: "+error.message,"err");return false;}}
   return true;
@@ -1108,7 +1108,7 @@ async function togglePago(id){
   const ns=r.status==="Pago Total"?"Pendente":"Pago Total";
   const hoje=new Date().toISOString().slice(0,10);
   const up={...r,status:ns,parcelas:(r.parcelas||[]).map(p=>({...p,pago:ns==="Pago Total",valor_recebido:ns==="Pago Total"?p.valor:0,situacao:ns==="Pago Total"?"Pago":"Pendente",data_recebimento:ns==="Pago Total"?(p.data_recebimento||hoje):null}))};
-  if(sb){await sb.from("cobrancas").update({status:ns,parcelas:JSON.stringify(up.parcelas)}).eq("id",id);}
+  if(sb){await sb.from("cobrancas").update({status:ns,parcelas:up.parcelas}).eq("id",id);}
   else{const i=rows.findIndex(x=>x.id===id);if(i!==-1)rows[i]=up;}
   await loadData();
   toast(ns==="Pago Total"?"Marcado como Pago Total!":"Desmarcado — agora Pendente.");
