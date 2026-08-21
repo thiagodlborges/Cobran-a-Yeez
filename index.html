@@ -80,6 +80,10 @@
   .kpi.k-ok   { border-color: var(--ok-border); background: var(--ok-bg); }
   .kpi.k-info { border-color: var(--info-border); background: var(--info-bg); }
   .kpi.k-warn { border-color: var(--warn-border); background: var(--warn-bg); }
+  .kpi-click  { cursor:pointer; transition: transform .12s, box-shadow .12s; }
+  .kpi-click:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(74,18,32,.14); }
+  .status-card { cursor:pointer; transition: transform .12s, box-shadow .12s; }
+  .status-card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(74,18,32,.14); }
   .kpi-label  { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .09em; margin-bottom: 8px; }
   .kpi-value  { font-size: 28px; font-weight: 700; font-family: 'Cormorant Garamond', serif; }
   .kpi-sub    { font-size: 12px; color: var(--muted); margin-top: 4px; }
@@ -91,30 +95,6 @@
 
   .section-title { font-family: 'Cormorant Garamond', serif; font-size: 14px; font-weight: 700; color: var(--bx); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
   .section-title::after { content:''; flex:1; height:1px; background: var(--border); }
-
-  .alert-box { background: var(--bx-light); border: 1px solid var(--bx-border); border-radius: 14px; margin-bottom: 22px; overflow: hidden; box-shadow: 0 1px 6px rgba(74,18,32,0.09); }
-  .alert-box-header { padding: 14px 20px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--bx-border); background: #FDEDEC; }
-  .alert-box-header span { font-weight: 700; color: var(--bx-dark); font-size: 14px; font-family: 'Cormorant Garamond', serif; }
-  .alert-count { margin-left: auto; background: var(--bx); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 99px; }
-  .alert-item { padding: 14px 20px; border-bottom: 1px solid var(--bx-border); display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; background: var(--surface); }
-  .alert-item:last-child { border-bottom: none; }
-  .alert-item-main { flex: 1; min-width: 160px; }
-  .alert-item-nf   { font-weight: 700; font-size: 14px; }
-  .alert-item-cli  { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .alert-item-stat { text-align: center; min-width: 90px; }
-  .alert-item-stat label { font-size: 10px; color: var(--muted); display: block; text-transform: uppercase; letter-spacing: .05em; }
-  .alert-item-stat strong { font-size: 13px; display: block; margin-top: 2px; }
-  .val-bx  { color: var(--bx); }
-  .val-br  { color: var(--br); }
-  .obs-pill { background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn); border-radius: 8px; padding: 5px 12px; font-size: 11px; width: 100%; }
-
-  .parc-chips { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; margin-top: 4px; }
-  .parc-chip  { display: inline-flex; flex-direction: column; align-items: center; padding: 5px 10px; border-radius: 8px; font-size: 11px; border: 1px solid; min-width: 100px; text-align: center; }
-  .parc-chip b { font-size: 12px; font-weight: 700; }
-  .chip-late { background: var(--bx-light); border-color: var(--bx-border); color: var(--bx-dark); }
-  .chip-ok   { background: var(--ok-bg);    border-color: var(--ok-border);  color: var(--ok); }
-  .chip-pend { background: var(--warn-bg);  border-color: var(--warn-border);color: var(--warn); }
-  .chip-perda{ background: #2C1810; border-color: #2C1810; color: #F5EFE4; }
 
   .empty-state { padding: 40px; text-align: center; color: var(--muted); font-size: 14px; }
 
@@ -382,19 +362,10 @@
 
     <div class="kpis">
       <div class="kpi k-info" id="kpiPeriodoBox"><div class="kpi-label" id="kpiPeriodoLabel">Faturado no Período (Competência)</div><div class="kpi-value" id="kpi-periodo">—</div><div class="kpi-sub" id="kpi-periodo-sub">—</div></div>
-      <div class="kpi k-bx"><div class="kpi-label">Parcelas em Atraso (hoje)</div><div class="kpi-value" id="kpi-atrasado">—</div><div class="kpi-sub" id="kpi-atrasado-sub">—</div></div>
-      <div class="kpi k-warn"><div class="kpi-label">Recebíveis a Vencer</div><div class="kpi-value" id="kpi-avencer">—</div><div class="kpi-sub" id="kpi-avencer-sub">Parcelas em dia, não pagas</div></div>
+      <div class="kpi k-bx kpi-click" onclick="irParaCobrancasFiltradas('Atrasado')" title="Ver na aba Cobranças"><div class="kpi-label">Parcelas em Atraso (hoje)</div><div class="kpi-value" id="kpi-atrasado">—</div><div class="kpi-sub" id="kpi-atrasado-sub">—</div></div>
+      <div class="kpi k-warn kpi-click" onclick="irParaCobrancasFiltradas('Pendente')" title="Ver na aba Cobranças"><div class="kpi-label">Recebíveis a Vencer</div><div class="kpi-value" id="kpi-avencer">—</div><div class="kpi-sub" id="kpi-avencer-sub">Parcelas em dia, não pagas</div></div>
       <div class="kpi k-ok"><div class="kpi-label">Total Recebido (histórico)</div><div class="kpi-value" id="kpi-recebido">—</div><div class="kpi-sub" id="kpi-recebido-sub">—</div></div>
-      <div class="kpi" style="border-color:#2C1810;background:#EDE4D4"><div class="kpi-label" style="color:#2C1810">Perdas no Período</div><div class="kpi-value" style="color:#2C1810" id="kpi-perda">—</div><div class="kpi-sub" id="kpi-perda-sub">—</div></div>
-    </div>
-
-    <div class="section-title">🚨 NFs com Parcelas em Atraso</div>
-    <div class="alert-box">
-      <div class="alert-box-header">
-        <span>Boletos / Parcelas Vencidos</span>
-        <span class="alert-count" id="alertCount">0</span>
-      </div>
-      <div id="alertList"><div class="empty-state">Carregando...</div></div>
+      <div class="kpi kpi-click" style="border-color:#2C1810;background:#EDE4D4" onclick="irParaCobrancasFiltradas('Perda')" title="Ver na aba Cobranças"><div class="kpi-label" style="color:#2C1810">Perdas no Período</div><div class="kpi-value" style="color:#2C1810" id="kpi-perda">—</div><div class="kpi-sub" id="kpi-perda-sub">—</div></div>
     </div>
 
     <div class="section-title">Situação por Status</div>
@@ -446,9 +417,16 @@
         <span class="search-icon">🔍</span>
         <input type="text" id="searchInput" placeholder="Buscar cliente, NF, código..." oninput="renderTable()"/>
       </div>
-      <select class="filter" id="filterStatus" onchange="renderTable()">
+      <select class="filter" id="filterStatus" onchange="renderTable()" title="Status da NF">
         <option>Todos</option><option>Pendente</option><option>Pago Parcial</option>
         <option>Pago Total</option><option>Atrasado</option><option>Cancelado</option>
+      </select>
+      <select class="filter" id="filterSituacao" onchange="renderTable()" title="Situação da parcela">
+        <option value="Todas">Situação da parcela: todas</option>
+        <option value="Pendente">Pendente</option>
+        <option value="Atrasado">Em atraso</option>
+        <option value="Pago">Pago</option>
+        <option value="Perda">Perda</option>
       </select>
       <select class="filter" id="filterOrigem" onchange="renderTable()">
         <option value="Todas">Todas as origens</option>
@@ -887,7 +865,6 @@ function renderDash(){
   // ── KPIs globais (não dependem do período — são sempre "hoje") ──
   const lateParcelas=[]; let lateVal=0;
   rows.forEach(r=>(r.parcelas||[]).forEach(p=>{if(isPLate(p)){lateParcelas.push({...p,_r:r});lateVal+=Number(p.valor)-Number(p.valor_recebido||0);}}));
-  const nfsLate   = rows.filter(hasLate);
   const totalReceb= rows.reduce((s,r)=>s+totalRec(r),0);
   const pagas     = rows.filter(r=>r.status==="Pago Total");
 
@@ -905,29 +882,6 @@ function renderDash(){
   document.getElementById("kpi-avencer-sub").textContent = aVencerQtd+" parcela(s) dentro do prazo";
   document.getElementById("kpi-recebido").textContent    = fmtBRL(totalReceb);
   document.getElementById("kpi-recebido-sub").textContent= pagas.length+" NFs quitadas (todo o período)";
-  document.getElementById("alertCount").textContent      = nfsLate.length;
-
-  const al=document.getElementById("alertList");
-  if(!nfsLate.length){ al.innerHTML=`<div class="empty-state">✅ Nenhuma parcela em atraso!</div>`; }
-  else al.innerHTML=nfsLate.map(r=>{
-    const saldo=Number(r.valor_total)-totalRec(r);
-    const lateCount=(r.parcelas||[]).filter(isPLate).length;
-    const chips=(r.parcelas||[]).map(p=>{
-      const cl=p.situacao==="Perda"?"chip-perda":(p.pago?"chip-ok":(isPLate(p)?"chip-late":"chip-pend"));
-      const lb=p.situacao==="Perda"?"⊘ Perda":(p.pago?"✓ Paga":(isPLate(p)?`${daysL(p.data_vencimento)}d atraso`:"Pendente"));
-      return `<div class="parc-chip ${cl}"><b>${p.num}ª · ${fmtBRL(p.valor)}</b><span>${fmtDate(p.data_vencimento)} · ${p.forma_pagamento}</span><span>${lb}</span></div>`;
-    }).join("");
-    return `<div class="alert-item">
-      <div class="alert-item-main">
-        <div class="alert-item-nf">${nfLabel(r)} <span class="badge b-atrasado">Atraso</span> ${origemBadge(r.origem)}</div>
-        <div class="alert-item-cli">${r.nome_cliente||""} · ${r.codigo_cliente}</div>
-      </div>
-      <div class="alert-item-stat"><label>Parcelas vencidas</label><strong class="val-bx">${lateCount} de ${(r.parcelas||[]).length}</strong></div>
-      <div class="alert-item-stat"><label>Saldo devedor</label><strong class="val-br">${fmtBRL(saldo)}</strong></div>
-      <div class="parc-chips">${chips}</div>
-      ${r.observacoes?`<div class="obs-pill">💬 ${r.observacoes}</div>`:""}
-    </div>`;
-  }).join("");
 
   const sts=[
     {k:"Pendente",   bg:"var(--warn-bg)", bc:"var(--warn-border)",cl:"var(--warn)"},
@@ -938,7 +892,7 @@ function renderDash(){
   ];
   document.getElementById("statusGrid").innerHTML=sts.map(s=>{
     const cnt=rows.filter(r=>r.status===s.k).length;
-    return`<div class="status-card" style="background:${s.bg};border-color:${s.bc}"><div class="s-count" style="color:${s.cl}">${cnt}</div><div class="s-label" style="color:${s.cl}">${s.k}</div></div>`;
+    return`<div class="status-card" style="background:${s.bg};border-color:${s.bc}" onclick="irParaCobrancasFiltradasPorStatus('${s.k}')" title="Ver na aba Cobranças"><div class="s-count" style="color:${s.cl}">${cnt}</div><div class="s-label" style="color:${s.cl}">${s.k}</div></div>`;
   }).join("");
   renderChart();
   renderCompCaixaChart();
@@ -1002,10 +956,37 @@ function clearDateFilter(){
   renderTable();
 }
 
+// Vem do "Situação por Status": filtra por status da NF (diferente da situação de parcela).
+function irParaCobrancasFiltradasPorStatus(status){
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.getElementById("panel-tabela").classList.add("active");
+  document.querySelectorAll(".tab")[1].classList.add("active");
+
+  document.getElementById("searchInput").value = "";
+  document.getElementById("filterStatus").value = status;
+  document.getElementById("filterOrigem").value = "Todas";
+  document.getElementById("filterSituacao").value = "Todas";
+  document.getElementById("filterDe").value = "";
+  document.getElementById("filterAte").value = "";
+  document.getElementById("groupMode").value = "nenhum";
+  renderTable();
+}
+
+function parcelaMatchSituacao(p, situacao){
+  if (situacao === "Todas") return true;
+  if (situacao === "Perda")    return p.situacao === "Perda";
+  if (situacao === "Pago")     return !!p.pago;
+  if (situacao === "Atrasado") return isPLate(p);
+  if (situacao === "Pendente") return !p.pago && p.situacao !== "Perda" && !isPLate(p);
+  return true;
+}
+
 function renderTable(){
   const q   = document.getElementById("searchInput").value.toLowerCase();
   const fs  = document.getElementById("filterStatus").value;
   const fo  = document.getElementById("filterOrigem").value;
+  const fsit= document.getElementById("filterSituacao").value;
   const gm  = document.getElementById("groupMode").value;
   const df  = document.getElementById("filterDateField").value; // "vencimento" | "competencia"
   const de  = document.getElementById("filterDe").value;
@@ -1017,6 +998,7 @@ function renderTable(){
     if (!mText) return false;
     if (fs !== "Todos" && r.status !== fs) return false;
     if (fo !== "Todas" && (r.origem||"Manual") !== fo) return false;
+    if (fsit !== "Todas" && !(r.parcelas||[]).some(p => parcelaMatchSituacao(p, fsit))) return false;
     if (hasDateFilter) {
       if (df === "competencia") {
         const v = r.data_venda || "";
@@ -1264,6 +1246,23 @@ function switchTab(tab,el){
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   document.getElementById("panel-"+tab).classList.add("active");
   el.classList.add("active");
+}
+
+// Vem dos KPIs do Dashboard: pula pra aba Cobranças já filtrada pela situação da parcela clicada.
+function irParaCobrancasFiltradas(situacao){
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.getElementById("panel-tabela").classList.add("active");
+  document.querySelectorAll(".tab")[1].classList.add("active");
+
+  document.getElementById("searchInput").value = "";
+  document.getElementById("filterStatus").value = "Todos";
+  document.getElementById("filterOrigem").value = "Todas";
+  document.getElementById("filterSituacao").value = situacao;
+  document.getElementById("filterDe").value = "";
+  document.getElementById("filterAte").value = "";
+  document.getElementById("groupMode").value = "nenhum";
+  renderTable();
 }
 
 // ── EXPORT ──────────────────────────────────────────────────────────────────
