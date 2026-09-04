@@ -682,6 +682,11 @@ function renderChart() {
   const recebido = Array(8).fill(0);
 
   rows.forEach(r => {
+    // Nota cancelada: valores em aberto não são nem "atraso" nem "a vencer" —
+    // a cobrança foi cancelada, então não entram em nenhum dos dois. Se algo
+    // já tinha sido efetivamente recebido antes do cancelamento, isso continua
+    // contando como recebido (dinheiro que entrou é fato, independente do status).
+    const cancelado = r.status === "Cancelado";
     (r.parcelas||[]).forEach(p => {
       const venc = (p.data_vencimento||'').slice(0,7); // YYYY-MM
       const idx  = months.findIndex(m => m.key === venc);
@@ -690,6 +695,8 @@ function renderChart() {
       const rec  = Number(p.valor_recebido) || 0;
       if (p.pago) {
         recebido[idx] += rec;
+      } else if (cancelado) {
+        // não soma em nenhum bucket
       } else if (isPLate(p)) {
         atrasado[idx] += val - rec;
       } else {
@@ -864,7 +871,10 @@ function renderDash(){
 
   // ── KPIs globais (não dependem do período — são sempre "hoje") ──
   const lateParcelas=[]; let lateVal=0;
-  rows.forEach(r=>(r.parcelas||[]).forEach(p=>{if(isPLate(p)){lateParcelas.push({...p,_r:r});lateVal+=Number(p.valor)-Number(p.valor_recebido||0);}}));
+  rows.forEach(r=>{
+    if(r.status==="Cancelado") return; // nota cancelada não conta como atraso
+    (r.parcelas||[]).forEach(p=>{if(isPLate(p)){lateParcelas.push({...p,_r:r});lateVal+=Number(p.valor)-Number(p.valor_recebido||0);}});
+  });
   const totalReceb= rows.reduce((s,r)=>s+totalRec(r),0);
   const pagas     = rows.filter(r=>r.status==="Pago Total");
 
@@ -903,12 +913,13 @@ function nfLabel(r){return r.numero_nota ? r.numero_nota : '<span style="color:v
 
 function renderRowHtml(r){
   const late  = hasLate(r);
+  const cancelado = r.status === "Cancelado";
   const saldo = Number(r.valor_total)-totalRec(r);
   const parcHtml=(r.parcelas||[]).map(p=>{
-    const pl = isPLate(p);
+    const pl = !cancelado && isPLate(p);
     const isPerda = p.situacao==="Perda";
-    const bc = isPerda?"b-perda":(p.pago?"b-pago":(pl?"b-atrasado":"b-pendente"));
-    const lb = isPerda?"Perda":(p.pago?"Pago":(pl?`${daysL(p.data_vencimento)}d atraso`:"Pendente"));
+    const bc = isPerda?"b-perda":(p.pago?"b-pago":(cancelado?"b-cancelado":(pl?"b-atrasado":"b-pendente")));
+    const lb = isPerda?"Perda":(p.pago?"Pago":(cancelado?"Cancelado":(pl?`${daysL(p.data_vencimento)}d atraso`:"Pendente")));
     return`<div class="parc-line">
       <span class="parc-num">${p.num}ª</span>
       <span class="parc-val">${fmtBRL(p.valor)}</span>
@@ -973,12 +984,14 @@ function irParaCobrancasFiltradasPorStatus(status){
   renderTable();
 }
 
-function parcelaMatchSituacao(p, situacao){
+function parcelaMatchSituacao(r, p, situacao){
   if (situacao === "Todas") return true;
   if (situacao === "Perda")    return p.situacao === "Perda";
   if (situacao === "Pago")     return !!p.pago;
-  if (situacao === "Atrasado") return isPLate(p);
-  if (situacao === "Pendente") return !p.pago && p.situacao !== "Perda" && !isPLate(p);
+  // Nota cancelada: a parcela nunca é "Atrasado" nem "Pendente" — a cobrança
+  // foi cancelada, então não está nem em atraso nem aguardando vencimento.
+  if (situacao === "Atrasado") return r.status !== "Cancelado" && isPLate(p);
+  if (situacao === "Pendente") return r.status !== "Cancelado" && !p.pago && p.situacao !== "Perda" && !isPLate(p);
   return true;
 }
 
@@ -998,7 +1011,7 @@ function renderTable(){
     if (!mText) return false;
     if (fs !== "Todos" && r.status !== fs) return false;
     if (fo !== "Todas" && (r.origem||"Manual") !== fo) return false;
-    if (fsit !== "Todas" && !(r.parcelas||[]).some(p => parcelaMatchSituacao(p, fsit))) return false;
+    if (fsit !== "Todas" && !(r.parcelas||[]).some(p => parcelaMatchSituacao(r, p, fsit))) return false;
     if (hasDateFilter) {
       if (df === "competencia") {
         const v = r.data_venda || "";
@@ -1039,7 +1052,14 @@ function renderTable(){
   const totalVal  = parcsInRange.reduce((s,{p})=>s+Number(p.valor||0),0);
   const statMap   = {};
   parcsInRange.forEach(({r,p})=>{
-    const st = r.status;
+    // Nota cancelada: não entra em nenhum balde de status (não é atraso,
+    // não é pendente, não é pago — foi cancelada, ponto final).
+    if (r.status === "Cancelado") return;
+    let st = r.status;
+    // Uma NF com status "Atrasado" pode ter parcelas futuras (ex: parcelado em
+    // 3x, só a 1ª venceu). Sem isso, essas parcelas ainda não vencidas eram
+    // somadas no balde "Atrasado" só por herdar o status da nota inteira.
+    if (st === "Atrasado" && !isPLate(p)) st = p.pago ? "Pago Total" : "Pendente";
     if (!statMap[st]) statMap[st] = {val:0, cnt:0};
     statMap[st].val += Number(p.valor||0);
     statMap[st].cnt++;
